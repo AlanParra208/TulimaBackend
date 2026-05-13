@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+  output = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+
+model categoria {
+  id_categoria      Int                 @id
+  nombre            String              @db.VarChar(50)
+  destino_turistico destino_turistico[]
+  evento            evento[]
+  hotel             hotel[]
+  restaurante       restaurante[]
+}
+
+model destino_turistico {
+  id_destino     Int       @id
+  id_municipio   Int
+  numero_Calle   Int
+  nombre_Calle   String    @db.VarChar(50)
+  codifoPostal   Int
+  horarioAbierto DateTime? @db.Time(0)
+  horarioCerrado DateTime? @db.Time(0)
+  estadoConvenio Boolean
+  id_rese_a      Int       @map("id_reseña")
+  id_categoria   Int
+  categoria      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "destino_turistico_categoria_FK")
+  municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "destino_turistico_municipio_FK")
+  rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "destino_turistico_reseña_FK")
+  evento         evento[]
+
+  @@index([id_categoria], map: "destino_turistico_categoria_FK")
+  @@index([id_municipio], map: "destino_turistico_municipio_FK")
+  @@index([id_rese_a], map: "destino_turistico_reseña_FK")
+}
+
+model evento {
+  id_evento         Int               @id
+  id_destino        Int
+  nombre_Evento     String            @db.VarChar(50)
+  numero_Calle      Int
+  nombre_Calle      String            @db.VarChar(50)
+  codigoPostal      Int
+  id_municipio      Int
+  tipoEvento        String?           @db.VarChar(50)
+  fechaInicio       DateTime          @db.DateTime(0)
+  disponibilidad    String?           @db.VarChar(100)
+  fechaTermino      DateTime          @db.DateTime(0)
+  id_rese_a         Int               @map("id_reseña")
+  id_categoria      Int
+  categoria         categoria         @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "evento_categoria_FK")
+  destino_turistico destino_turistico @relation(fields: [id_destino], references: [id_destino], onUpdate: Restrict, map: "evento_destino_turistico_FK")
+  rese_a            rese_a            @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "evento_reseña_FK")
+
+  @@index([id_categoria], map: "evento_categoria_FK")
+  @@index([id_destino], map: "evento_destino_turistico_FK")
+  @@index([id_rese_a], map: "evento_reseña_FK")
+}
+
+model hotel {
+  id_hotel       Int       @id
+  nombre_hotel   String    @db.VarChar(25)
+  numero_Calle   Int
+  nombre_Calle   String    @db.VarChar(50)
+  codigoPostal   Int
+  id_municipio   Int
+  disponibilidad Int?
+  categoria      String?   @db.VarChar(20)
+  telefono       Int?
+  email          String?   @db.VarChar(50)
+  estadoConvenio Boolean
+  id_categoria   Int
+  id_rese_a      Int       @map("id_reseña")
+  categoria_relacion      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "hotel_categoria_FK")
+  municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
+  rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "hotel_reseña_FK")
+
+  @@index([id_categoria], map: "hotel_categoria_FK")
+  @@index([id_municipio], map: "hotel_municipio_FK")
+  @@index([id_rese_a], map: "hotel_reseña_FK")
+}
+
+model municipio {
+  id_municipio      Int                 @id
+  nombre            String              @db.VarChar(25)
+  url_imagen        String?             @db.Text
+  descripcion       String?             @db.Text
+  destino_turistico destino_turistico[]
+  hotel             hotel[]
+  restaurante       restaurante[]
+}
+
+model provedor_tour {
+  id_provedor    Int     @id
+  nombre         String  @db.VarChar(30)
+  tipoTour       String? @db.VarChar(20)
+  telefono       Int?
+  tipoServicio   String? @db.VarChar(50)
+  estadoConvenio Boolean
+  id_rese_a      Int?    @map("id_reseña")
+  rese_a         rese_a? @relation(fields: [id_rese_a], references: [id_rese_a], onDelete: Restrict, onUpdate: Restrict, map: "provedor_tour_reseña_FK")
+
+  @@index([id_rese_a], map: "provedor_tour_reseña_FK")
+}
+
+model rese_a {
+  id_rese_a         Int                 @id @map("id_reseña")
+  id_usuario        Int
+  calificacion      Decimal             @db.Decimal(1, 0)
+  fecha             DateTime            @db.DateTime(0)
+  destino_turistico destino_turistico[]
+  evento            evento[]
+  hotel             hotel[]
+  provedor_tour     provedor_tour[]
+  usuario           usuario             @relation(fields: [id_usuario], references: [id_usuario], onUpdate: Restrict, map: "reseña_usuario_FK")
+  restaurante       restaurante[]
+
+  @@index([id_usuario], map: "reseña_usuario_FK")
+  @@map("reseña")
+}
+
+model restaurante {
+  id_restaurante Int       @id
+  nombre         String    @db.VarChar(50)
+  tipo           String?   @db.VarChar(100)
+  numero_Calle   Int
+  nombre_Calle   String    @db.VarChar(50)
+  codigoPostal   Int
+  id_municipio   Int
+  disponibilidad String?   @db.VarChar(100)
+  telefono       Int?
+  email          String?   @db.VarChar(50)
+  estadoConvenio Boolean
+  id_categoria   Int
+  id_rese_a      Int       @map("id_reseña")
+  categoria      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "restaurante_categoria_FK")
+  municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "restaurante_municipio_FK")
+  rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "restaurante_reseña_FK")
+
+  @@index([id_categoria], map: "restaurante_categoria_FK")
+  @@index([id_municipio], map: "restaurante_municipio_FK")
+  @@index([id_rese_a], map: "restaurante_reseña_FK")
+}
+
+model suscripcion {
+  id_suscripcion    Int      @id
+  id_usuario        Int
+  fechaPago         DateTime @db.DateTime(0)
+  fechaFinalizacion DateTime @db.DateTime(0)
+  usuario           usuario  @relation(fields: [id_usuario], references: [id_usuario], onUpdate: Restrict, map: "suscripcion_usuario_FK")
+
+  @@index([id_usuario], map: "suscripcion_usuario_FK")
+}
+
+model usuario {
+  id_usuario      Int           @id
+  primerNombre    String        @db.VarChar(50)
+  segundoNombre   String?       @db.VarChar(50)
+  apellidoPaterno String        @db.VarChar(50)
+  apellidoMaterno String?       @db.VarChar(50)
+  contrase_a      String        @map("contraseña") @db.VarChar(15)
+  nombreUsuario   String        @db.VarChar(15)
+  telefono        BigInt?
+  genero          String?       @db.VarChar(1)
+  edad            Int?
+  rol             String        @db.VarChar(6)
+  rese_a          rese_a[]
+  suscripcion     suscripcion[]
+}
