@@ -172,12 +172,14 @@ model suscripcion {
 }
 
 model usuario {
-  id_usuario      Int           @id
+  id_usuario      Int           @id @default(autoincrement())
+  googleId        String?       @unique @db.VarChar(255)
+  correo          String?       @unique @db.VarChar(100)
   primerNombre    String        @db.VarChar(50)
   segundoNombre   String?       @db.VarChar(50)
   apellidoPaterno String        @db.VarChar(50)
   apellidoMaterno String?       @db.VarChar(50)
-  contrase_a      String        @map("contraseña") @db.VarChar(15)
+  contrase_a      String?       @map("contraseña") @db.VarChar(15)
   nombreUsuario   String        @db.VarChar(15)
   telefono        BigInt?
   genero          String?       @db.VarChar(1)
