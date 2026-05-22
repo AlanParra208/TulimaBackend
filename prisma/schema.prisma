@@ -1,11 +1,11 @@
 generator client {
   provider = "prisma-client-js"
-  output = "../node_modules/.prisma/client"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "mysql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model categoria {
@@ -20,7 +20,8 @@ model categoria {
 model destino_turistico {
   id_destino     Int       @id
   id_municipio   Int
-  numero_Calle   Int
+  nombre         String?   @db.VarChar(100)
+  numero_Calle   Int?
   nombre_Calle   String    @db.VarChar(50)
   codifoPostal   Int
   horarioAbierto DateTime? @db.Time(0)
@@ -28,6 +29,7 @@ model destino_turistico {
   estadoConvenio Boolean
   id_rese_a      Int       @map("id_reseña")
   id_categoria   Int
+  imagen         String?   @db.Text
   categoria      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "destino_turistico_categoria_FK")
   municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "destino_turistico_municipio_FK")
   rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "destino_turistico_reseña_FK")
@@ -62,22 +64,25 @@ model evento {
 }
 
 model hotel {
-  id_hotel       Int       @id
-  nombre_hotel   String    @db.VarChar(25)
-  numero_Calle   Int
-  nombre_Calle   String    @db.VarChar(50)
-  codigoPostal   Int
-  id_municipio   Int
-  disponibilidad Int?
-  categoria      String?   @db.VarChar(20)
-  telefono       Int?
-  email          String?   @db.VarChar(50)
-  estadoConvenio Boolean
-  id_categoria   Int
-  id_rese_a      Int       @map("id_reseña")
-  categoria_relacion      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "hotel_categoria_FK")
-  municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
-  rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "hotel_reseña_FK")
+  id_hotel           Int       @id
+  nombre_hotel       String    @db.VarChar(25)
+  numero_Calle       Int
+  nombre_Calle       String    @db.VarChar(50)
+  codigoPostal       Int
+  id_municipio       Int
+  disponibilidad     Int?
+  categoria          String?   @db.VarChar(20)
+  telefono           BigInt?
+  email              String?   @db.VarChar(50)
+  estadoConvenio     Boolean
+  id_categoria       Int
+  id_rese_a          Int       @map("id_reseña")
+  imagen             String?   @db.Text
+  descripcion        String?   @db.VarChar(255)
+  calificacion       String?   @db.VarChar(10)
+  categoria_relacion categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "hotel_categoria_FK")
+  municipio          municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
+  rese_a             rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "hotel_reseña_FK")
 
   @@index([id_categoria], map: "hotel_categoria_FK")
   @@index([id_municipio], map: "hotel_municipio_FK")
@@ -91,20 +96,26 @@ model municipio {
   descripcion       String?             @db.Text
   destino_turistico destino_turistico[]
   hotel             hotel[]
+  provedor_tour     provedor_tour[]
   restaurante       restaurante[]
 }
 
 model provedor_tour {
-  id_provedor    Int     @id
-  nombre         String  @db.VarChar(30)
-  tipoTour       String? @db.VarChar(20)
-  telefono       Int?
-  tipoServicio   String? @db.VarChar(50)
+  id_provedor    Int       @id
+  nombre         String    @db.VarChar(30)
+  tipoTour       String?   @db.VarChar(20)
+  telefono       BigInt?
+  tipoServicio   String?   @db.VarChar(50)
   estadoConvenio Boolean
-  id_rese_a      Int?    @map("id_reseña")
-  rese_a         rese_a? @relation(fields: [id_rese_a], references: [id_rese_a], onDelete: Restrict, onUpdate: Restrict, map: "provedor_tour_reseña_FK")
+  id_rese_a      Int?      @map("id_reseña")
+  imagen         String?   @db.Text
+  id_municipio   Int
+  calificacion   String?   @db.VarChar(100)
+  municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "provedor_tour_municipio_FK")
+  rese_a         rese_a?   @relation(fields: [id_rese_a], references: [id_rese_a], onDelete: Restrict, onUpdate: Restrict, map: "provedor_tour_reseña_FK")
 
   @@index([id_rese_a], map: "provedor_tour_reseña_FK")
+  @@index([id_municipio], map: "provedor_tour_municipio_FK")
 }
 
 model rese_a {
@@ -132,11 +143,15 @@ model restaurante {
   codigoPostal   Int
   id_municipio   Int
   disponibilidad String?   @db.VarChar(100)
-  telefono       Int?
+  telefono       BigInt?
   email          String?   @db.VarChar(50)
   estadoConvenio Boolean
   id_categoria   Int
   id_rese_a      Int       @map("id_reseña")
+  imagen         String?   @db.Text
+  calificacion   String?   @db.VarChar(100)
+  horarioAbierto DateTime? @db.Time(0)
+  horarioCerrado DateTime? @db.Time(0)
   categoria      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "restaurante_categoria_FK")
   municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "restaurante_municipio_FK")
   rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "restaurante_reseña_FK")

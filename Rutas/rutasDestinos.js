@@ -8,7 +8,11 @@ const prisma = require('../config.db');
 
 app.get('/destinos', async (req, res)=>{
     try{
-        const destinos = await prisma.destino_turistico.findMany();
+        const destinos = await prisma.destino_turistico.findMany({
+            include: {
+                municipio: true
+            }
+        });
         res.status(200).json(destinos);
    }catch(error){
     console.error('Error al consultar destinos:', error);
