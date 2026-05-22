@@ -30,6 +30,7 @@ model destino_turistico {
   id_rese_a      Int       @map("id_reseña")
   id_categoria   Int
   imagen         String?   @db.Text
+  calificacion   String?   @db.VarChar(100)
   categoria      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "destino_turistico_categoria_FK")
   municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "destino_turistico_municipio_FK")
   rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "destino_turistico_reseña_FK")
@@ -173,8 +174,6 @@ model suscripcion {
 
 model usuario {
   id_usuario      Int           @id @default(autoincrement())
-  googleId        String?       @unique @db.VarChar(255)
-  correo          String?       @unique @db.VarChar(100)
   primerNombre    String        @db.VarChar(50)
   segundoNombre   String?       @db.VarChar(50)
   apellidoPaterno String        @db.VarChar(50)
@@ -185,6 +184,8 @@ model usuario {
   genero          String?       @db.VarChar(1)
   edad            Int?
   rol             String        @db.VarChar(6)
+  correo          String?       @unique @db.VarChar(100)
+  googleId        String?       @unique @db.VarChar(255)
   rese_a          rese_a[]
   suscripcion     suscripcion[]
 }

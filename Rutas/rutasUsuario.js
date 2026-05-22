@@ -172,6 +172,8 @@ app.get('/usuarios', async (req, res) => {
     }
 });
 
+
+
 // Llevar un usuario especifico por id (protegido)
 app.get('/usuarios/:id', async (req, res) => {
     try {
@@ -192,24 +194,50 @@ app.get('/usuarios/:id', async (req, res) => {
 });
 
 // Añadir un nuevo usuario (protegido)
-app.post('/usuarios', authenticateToken, async (req, res) => {
+app.post('/usuarios', async (req, res) => {
     try {
         const data = req.body;
 
-        // Prisma inserta los datos pasándole un objeto 'data'
+        if (!data.primerNombre || !data.nombreUsuario || !data.contraseña) {
+            return res.status(400).json({ error: 'Nombre, usuario y contraseña son obligatorios' });
+        }
+
+        const partesNombre = data.primerNombre.trim().split(/\s+/);
+        
+        let nom1 = "";
+        let nom2 = null;
+        let apPat = "";
+        let apMat = null;
+
+        if (partesNombre.length === 1) {
+            nom1 = partesNombre[0];
+            apPat = "Sin Apellido";
+        } else if (partesNombre.length === 2) {
+            nom1 = partesNombre[0];
+            apPat = partesNombre[1];
+        } else if (partesNombre.length === 3) {
+            nom1 = partesNombre[0];
+            apPat = partesNombre[1];
+            apMat = partesNombre[2];
+        } else if (partesNombre.length >= 4) {
+            nom1 = partesNombre[0];
+            nom2 = partesNombre[1];
+            apPat = partesNombre[2];
+            apMat = partesNombre.slice(3).join(" "); 
+        }
+
         const nuevoUsuario = await prisma.usuario.create({
             data: {
-                id_usuario: data.id_usuario, // Omite esto si tu BD es AUTO_INCREMENT
-                primerNombre: data.primerNombre,
-                segundoNombre: data.segundoNombre,
-                apellidoPaterno: data.apellidoPaterno,
-                apellidoMaterno: data.apellidoMaterno,
-                contraseña: data.contraseña,
+                primerNombre: nom1,
+                segundoNombre: nom2,
+                apellidoPaterno: apPat,
+                apellidoMaterno: apMat,
+                contrase_a: data.contraseña,
                 nombreUsuario: data.nombreUsuario,
-                telefono: data.telefono,
-                genero: data.genero,
-                edad: data.edad,
-                rol: data.rol
+                telefono: data.telefono || null,
+                genero: data.genero || null,
+                edad: data.edad || null,
+                rol: 'user'
             }
         });
 
@@ -219,6 +247,11 @@ app.post('/usuarios', authenticateToken, async (req, res) => {
         });
     } catch (error) {
         console.error('Error al crear el usuario:', error);
+        
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: 'Este nombre de usuario ya está en uso' });
+        }
+        
         res.status(500).json({ error: 'Error al crear el usuario' });
     }
 });
