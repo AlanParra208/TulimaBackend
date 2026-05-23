@@ -14,7 +14,7 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:'],
-      connectSrc: ["'self'", 'http://localhost:5173'],
+      connectSrc: ["'self'", 'https://tulima.vercel.app/'],
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
@@ -28,7 +28,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://tulima.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],

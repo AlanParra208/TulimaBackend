@@ -47,10 +47,25 @@ const generateCsrfToken = (req, res) => {
 };
 
 const verifyCsrfToken = (req, res, next) => {
+    // 1. Ignorar peticiones seguras de solo lectura
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
         return next();
     }
 
+    // 🟢 2. EXCEPCIÓN DE RUTAS PÚBLICAS
+    // Rutas que manejan POST pero que no requieren CSRF porque el usuario apenas va a entrar
+    const rutasIgnoradas = [
+        '/login', 
+        '/login/mfa',
+        '/usuarios', // Tu ruta de registro
+    ];
+
+    // Si la ruta solicitada está en la lista blanca, permitimos el paso inmediatamente
+    if (rutasIgnoradas.includes(req.path)) {
+        return next();
+    }
+
+    // 3. Validación CSRF para el resto de los endpoints protegidos
     const tokenFromHeader = req.headers['x-csrf-token'];
     const csrfId = req.cookies['csrf-id'];
 

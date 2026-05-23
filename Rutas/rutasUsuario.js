@@ -13,6 +13,7 @@ const bcrypt = require('bcrypt');
 
 app.use(passport.initialize());
 
+
 const prisma = require('../config.db');
 
 // Le enseñamos a JavaScript a serializar los BigInt convirtiéndolos a String
@@ -104,14 +105,14 @@ function(req, res)  {
         rol: req.user.rol
     };
     const token = jwt.sign(userPayload, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.cookie('token', token,{
+    res.cookie('token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Solo en producción
-        sameSite: 'strict',
-        maxAge: 3600000 // 1 hora
+        secure: process.env.NODE_ENV === 'production', // true en Vercel, false en localhost
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', // 'none' permite cookies entre distintos dominios
+        maxAge: 3600000
     });
 
-    res.redirect('http://localhost:5173/'); 
+    res.redirect('https://tulima.vercel.app/'); 
 }
 );
 
@@ -189,8 +190,8 @@ app.post(
         const token = jwt.sign(userPayload, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production', // true en Vercel, false en localhost
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', // 'none' permite cookies entre distintos dominios
             maxAge: 3600000
         });
         res.status(201).json({mensaje: "Login exitoso", token});
@@ -214,12 +215,12 @@ app.post('/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
   });
   res.clearCookie('csrf-id', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
   });
 
   res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
@@ -358,7 +359,7 @@ app.post(
       res.cookie('token', tokenFinal, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', 
         maxAge: 3600000
       });
 
