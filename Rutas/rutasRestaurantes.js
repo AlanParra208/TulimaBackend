@@ -3,6 +3,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
+const { body, param, validateRequest } = require('../Middlewares/validator');
 
 const prisma = require('../config.db');
 
@@ -20,7 +21,11 @@ app.get('/restaurantes', async (req, res)=>{
    }
 });
 
-app.get('/restaurantes/:id', async (req, res) => {
+app.get(
+  '/restaurantes/:id',
+  [param('id').isInt().withMessage('id debe ser un número entero')],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
         const restaurante = await prisma.restaurante.findUnique({
@@ -35,10 +40,67 @@ app.get('/restaurantes/:id', async (req, res) => {
     }
 });
 
-app.post('/restaurantes', async (req, res) => {
+app.post(
+  '/restaurantes',
+  [
+    body('nombre').trim().notEmpty().withMessage('nombre es obligatorio').isLength({ max: 50 }),
+    body('numero_Calle').isInt().withMessage('numero_Calle debe ser un número entero'),
+    body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
+    body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
+    body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
+    body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
+    body('id_rese_a').isInt().withMessage('id_rese_a es obligatorio y debe ser un número entero'),
+    body('tipo').optional().isString().isLength({ max: 100 }),
+    body('disponibilidad').optional().isString().isLength({ max: 100 }),
+    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('email').optional().isEmail().withMessage('email no es válido'),
+    body('estadoConvenio').optional().isBoolean(),
+    body('imagen').optional().isString(),
+    body('calificacion').optional().isString().isLength({ max: 100 }),
+    body('horarioAbierto').optional().isString().isLength({ max: 8 }),
+    body('horarioCerrado').optional().isString().isLength({ max: 8 }),
+  ],
+  validateRequest,
+  async (req, res) => {
     try {
+        const {
+          nombre,
+          tipo,
+          numero_Calle,
+          nombre_Calle,
+          codigoPostal,
+          id_municipio,
+          disponibilidad,
+          telefono,
+          email,
+          estadoConvenio,
+          id_categoria,
+          id_rese_a,
+          imagen,
+          calificacion,
+          horarioAbierto,
+          horarioCerrado,
+        } = req.body;
+
         const nuevoRestaurante = await prisma.restaurante.create({
-            data: req.body
+            data: {
+              nombre,
+              tipo,
+              numero_Calle,
+              nombre_Calle,
+              codigoPostal,
+              id_municipio,
+              disponibilidad,
+              telefono,
+              email,
+              estadoConvenio,
+              id_categoria,
+              id_rese_a,
+              imagen,
+              calificacion,
+              horarioAbierto,
+              horarioCerrado,
+            }
         });
         res.status(201).json(nuevoRestaurante);
     } catch (error) {
@@ -47,12 +109,69 @@ app.post('/restaurantes', async (req, res) => {
     }
 });
 
-app.put('/restaurantes/:id', async (req, res) => {
+app.put(
+  '/restaurantes/:id',
+  [
+    param('id').isInt().withMessage('id debe ser un número entero'),
+    body('nombre').optional().trim().isLength({ max: 50 }),
+    body('numero_Calle').optional().isInt(),
+    body('nombre_Calle').optional().trim().isLength({ max: 50 }),
+    body('codigoPostal').optional().isInt(),
+    body('id_municipio').optional().isInt(),
+    body('id_categoria').optional().isInt(),
+    body('id_rese_a').optional().isInt(),
+    body('tipo').optional().isString().isLength({ max: 100 }),
+    body('disponibilidad').optional().isString().isLength({ max: 100 }),
+    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('email').optional().isEmail(),
+    body('estadoConvenio').optional().isBoolean(),
+    body('imagen').optional().isString(),
+    body('calificacion').optional().isString().isLength({ max: 100 }),
+    body('horarioAbierto').optional().isString().isLength({ max: 8 }),
+    body('horarioCerrado').optional().isString().isLength({ max: 8 }),
+  ],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
+        const {
+          nombre,
+          tipo,
+          numero_Calle,
+          nombre_Calle,
+          codigoPostal,
+          id_municipio,
+          disponibilidad,
+          telefono,
+          email,
+          estadoConvenio,
+          id_categoria,
+          id_rese_a,
+          imagen,
+          calificacion,
+          horarioAbierto,
+          horarioCerrado,
+        } = req.body;
         const restauranteActualizado = await prisma.restaurante.update({
             where: { id: Number(id) },
-            data: req.body
+            data: {
+              nombre,
+              tipo,
+              numero_Calle,
+              nombre_Calle,
+              codigoPostal,
+              id_municipio,
+              disponibilidad,
+              telefono,
+              email,
+              estadoConvenio,
+              id_categoria,
+              id_rese_a,
+              imagen,
+              calificacion,
+              horarioAbierto,
+              horarioCerrado,
+            }
         });
         res.status(200).json(restauranteActualizado);
     } catch (error) {

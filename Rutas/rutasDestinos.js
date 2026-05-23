@@ -3,6 +3,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
+const { body, param, validateRequest } = require('../Middlewares/validator');
 
 const prisma = require('../config.db');
 
@@ -20,7 +21,11 @@ app.get('/destinos', async (req, res)=>{
    }
 });
 
-app.get('/destinos/:id', async (req, res) => {
+app.get(
+  '/destinos/:id',
+  [param('id').isInt().withMessage('id debe ser un número entero')],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
         const destino = await prisma.destino_turistico.findUnique({
@@ -41,10 +46,55 @@ app.get('/destinos/:id', async (req, res) => {
     }
 });
 
-app.post('/destinos', async (req, res) => {
+app.post(
+  '/destinos',
+  [
+    body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
+    body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
+    body('codifoPostal').isInt().withMessage('codifoPostal debe ser un número entero'),
+    body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
+    body('id_rese_a').isInt().withMessage('id_rese_a es obligatorio y debe ser un número entero'),
+    body('nombre').optional().isString().isLength({ max: 100 }),
+    body('numero_Calle').optional().isInt(),
+    body('horarioAbierto').optional().isString().isLength({ max: 8 }),
+    body('horarioCerrado').optional().isString().isLength({ max: 8 }),
+    body('estadoConvenio').optional().isBoolean(),
+    body('imagen').optional().isString(),
+    body('calificacion').optional().isString().isLength({ max: 100 }),
+  ],
+  validateRequest,
+  async (req, res) => {
     try {
+        const {
+          id_municipio,
+          nombre,
+          numero_Calle,
+          nombre_Calle,
+          codifoPostal,
+          horarioAbierto,
+          horarioCerrado,
+          estadoConvenio,
+          id_rese_a,
+          id_categoria,
+          imagen,
+          calificacion,
+        } = req.body;
+
         const nuevoDestino = await prisma.destino_turistico.create({
-            data: req.body
+            data: {
+              id_municipio,
+              nombre,
+              numero_Calle,
+              nombre_Calle,
+              codifoPostal,
+              horarioAbierto,
+              horarioCerrado,
+              estadoConvenio,
+              id_rese_a,
+              id_categoria,
+              imagen,
+              calificacion,
+            }
         });
         res.status(201).json(nuevoDestino);
     } catch (error) {
@@ -53,12 +103,58 @@ app.post('/destinos', async (req, res) => {
     }
 });
 
-app.put('/destinos/:id', async (req, res) => {
+app.put(
+  '/destinos/:id',
+  [
+    param('id').isInt().withMessage('id debe ser un número entero'),
+    body('id_municipio').optional().isInt(),
+    body('nombre_Calle').optional().trim().isLength({ max: 50 }),
+    body('codifoPostal').optional().isInt(),
+    body('id_categoria').optional().isInt(),
+    body('id_rese_a').optional().isInt(),
+    body('nombre').optional().isString().isLength({ max: 100 }),
+    body('numero_Calle').optional().isInt(),
+    body('horarioAbierto').optional().isString().isLength({ max: 8 }),
+    body('horarioCerrado').optional().isString().isLength({ max: 8 }),
+    body('estadoConvenio').optional().isBoolean(),
+    body('imagen').optional().isString(),
+    body('calificacion').optional().isString().isLength({ max: 100 }),
+  ],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
+        const {
+          id_municipio,
+          nombre,
+          numero_Calle,
+          nombre_Calle,
+          codifoPostal,
+          horarioAbierto,
+          horarioCerrado,
+          estadoConvenio,
+          id_rese_a,
+          id_categoria,
+          imagen,
+          calificacion,
+        } = req.body;
+
         const destinoActualizado = await prisma.destino_turistico.update({
             where: { id: Number(id) }, 
-            data: req.body
+            data: {
+              id_municipio,
+              nombre,
+              numero_Calle,
+              nombre_Calle,
+              codifoPostal,
+              horarioAbierto,
+              horarioCerrado,
+              estadoConvenio,
+              id_rese_a,
+              id_categoria,
+              imagen,
+              calificacion,
+            }
         });
         res.status(200).json(destinoActualizado);
     } catch (error) {

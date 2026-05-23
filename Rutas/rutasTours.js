@@ -3,6 +3,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
+const { body, param, validateRequest } = require('../Middlewares/validator');
 
 const prisma = require('../config.db');
 
@@ -20,7 +21,11 @@ app.get('/tours', async (req, res)=>{
    }
 });
 
-app.get('/tours/:id', async (req, res) => {
+app.get(
+  '/tours/:id',
+  [param('id').isInt().withMessage('id debe ser un número entero')],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
         const tour = await prisma.provedor_tour.findUnique({
@@ -35,10 +40,45 @@ app.get('/tours/:id', async (req, res) => {
     }
 });
 
-app.post('/tours', async (req, res) => {
+app.post(
+  '/tours',
+  [
+    body('nombre').trim().notEmpty().withMessage('nombre es obligatorio').isLength({ max: 30 }),
+    body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
+    body('tipoTour').optional().isString().isLength({ max: 20 }),
+    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('tipoServicio').optional().isString().isLength({ max: 50 }),
+    body('estadoConvenio').optional().isBoolean(),
+    body('id_rese_a').optional().isInt(),
+    body('imagen').optional().isString(),
+    body('calificacion').optional().isString().isLength({ max: 100 }),
+  ],
+  validateRequest,
+  async (req, res) => {
     try {
+        const {
+          nombre,
+          id_municipio,
+          tipoTour,
+          telefono,
+          tipoServicio,
+          estadoConvenio,
+          id_rese_a,
+          imagen,
+          calificacion,
+        } = req.body;
         const nuevoTour = await prisma.provedor_tour.create({
-            data: req.body
+            data: {
+              nombre,
+              id_municipio,
+              tipoTour,
+              telefono,
+              tipoServicio,
+              estadoConvenio,
+              id_rese_a,
+              imagen,
+              calificacion,
+            }
         });
         res.status(201).json(nuevoTour);
     } catch (error) {
@@ -47,12 +87,48 @@ app.post('/tours', async (req, res) => {
     }
 });
 
-app.put('/tours/:id', async (req, res) => {
+app.put(
+  '/tours/:id',
+  [
+    param('id').isInt().withMessage('id debe ser un número entero'),
+    body('nombre').optional().trim().isLength({ max: 30 }),
+    body('id_municipio').optional().isInt(),
+    body('tipoTour').optional().isString().isLength({ max: 20 }),
+    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('tipoServicio').optional().isString().isLength({ max: 50 }),
+    body('estadoConvenio').optional().isBoolean(),
+    body('id_rese_a').optional().isInt(),
+    body('imagen').optional().isString(),
+    body('calificacion').optional().isString().isLength({ max: 100 }),
+  ],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
+        const {
+          nombre,
+          id_municipio,
+          tipoTour,
+          telefono,
+          tipoServicio,
+          estadoConvenio,
+          id_rese_a,
+          imagen,
+          calificacion,
+        } = req.body;
         const tourActualizado = await prisma.provedor_tour.update({
             where: { id: Number(id) },
-            data: req.body
+            data: {
+              nombre,
+              id_municipio,
+              tipoTour,
+              telefono,
+              tipoServicio,
+              estadoConvenio,
+              id_rese_a,
+              imagen,
+              calificacion,
+            }
         });
         res.status(200).json(tourActualizado);
     } catch (error) {

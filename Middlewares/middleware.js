@@ -1,25 +1,140 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+
+// Store en memoria para tokens CSRF: { csrfId => { token, expiresAt } }
+const csrfStore = new Map();
 
 const verificarToken = (req, res, next) => {
-    // Busca la cookie con el nombre que le pusiste (ej. 'token' o 'jwt')
-    const token = req.cookies.token; 
+    const token = req.cookies.token;
 
     if (!token) {
         return res.status(401).json({ mensaje: "No autorizado, no hay token" });
     }
 
     try {
-        // Verifica el token con tu palabra secreta
         const decodificado = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Guardamos el id del usuario en la request para usarlo en el siguiente paso
-        // NOTA: Asegúrate de que 'id_usuario' coincide con el nombre que usaste al crear el token
-        req.usuarioId = decodificado.id_usuario; 
-        
-        next(); // Todo está bien, pasa a la siguiente función
+        req.usuarioId = decodificado.id_usuario;
+        req.user = decodificado;
+        next();
     } catch (error) {
         return res.status(401).json({ mensaje: "Token inválido o expirado" });
     }
 };
 
-module.exports = { verificarToken };
+const generateCsrfToken = (req, res) => {
+    // Crear un id que asocie el token en el servidor. Usamos cookie httpOnly 'csrf-id'
+    const csrfId = crypto.randomBytes(16).toString('hex');
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Guardar en store en memoria con TTL
+    const ttlMs = 15 * 60 * 1000; // 15 minutos
+    const expiresAt = Date.now() + ttlMs;
+    csrfStore.set(csrfId, { token, expiresAt });
+
+    // Limpieza simple de expirados
+    for (const [key, value] of csrfStore.entries()) {
+        if (value.expiresAt < Date.now()) csrfStore.delete(key);
+    }
+
+    res.cookie('csrf-id', csrfId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: ttlMs
+    });
+
+    return res.json({ csrfToken: token });
+};
+
+const verifyCsrfToken = (req, res, next) => {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        return next();
+    }
+
+    const tokenFromHeader = req.headers['x-csrf-token'];
+    const csrfId = req.cookies['csrf-id'];
+
+    if (!tokenFromHeader || !csrfId) {
+        return res.status(403).json({ error: 'Token CSRF inválido o faltante' });
+    }
+
+    const record = csrfStore.get(csrfId);
+    if (!record) {
+        return res.status(403).json({ error: 'Token CSRF expirado o no encontrado' });
+    }
+
+    if (record.expiresAt < Date.now()) {
+        csrfStore.delete(csrfId);
+        return res.status(403).json({ error: 'Token CSRF expirado' });
+    }
+
+    if (record.token !== tokenFromHeader) {
+        return res.status(403).json({ error: 'Token CSRF inválido' });
+    }
+
+    // Opción: renovar el token para mayor seguridad (rotación) — aquí no rotamos.
+    next();
+};
+
+const algorithm = 'aes-256-cbc';
+const secretKey = crypto.scryptSync(process.env.JWT_SECRET || 'llave_secreta_por_defecto', 'salt', 32);
+
+const encryptSymmetric = (text) => {
+    if (!text) return text;
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
+    const encrypted = Buffer.concat([cipher.update(text.toString()), cipher.final()]);
+    return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
+};
+
+const decryptSymmetric = (hash) => {
+    if (!hash || !hash.includes(':')) return hash;
+    try {
+        const [ivHex, encryptedHex] = hash.split(':');
+        const iv = Buffer.from(ivHex, 'hex');
+        const encryptedText = Buffer.from(encryptedHex, 'hex');
+        const decipher = crypto.createDecipheriv(algorithm, secretKey, iv);
+        const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+        return decrypted.toString();
+    } catch (err) {
+        return hash; 
+    }
+};
+
+const sanitizeString = (value) => {
+    if (typeof value !== 'string') return value;
+    return value
+        .replace(/<\s*script[^>]*>(.*?)<\s*\/\s*script>/gi, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s*on\w+\s*=\s*['"][^'"]*['"]/gi, '');
+};
+
+const sanitizeObject = (obj) => {
+    if (obj === null || obj === undefined) return obj;
+    if (typeof obj === 'string') return sanitizeString(obj);
+    if (Array.isArray(obj)) return obj.map(sanitizeObject);
+    if (typeof obj === 'object') {
+        const sanitized = {};
+        for (const key of Object.keys(obj)) {
+            sanitized[key] = sanitizeObject(obj[key]);
+        }
+        return sanitized;
+    }
+    return obj;
+};
+
+const sanitizeRequest = (req, res, next) => {
+    if (req.body) req.body = sanitizeObject(req.body);
+    if (req.query) req.query = sanitizeObject(req.query);
+    next();
+};
+
+const deleteCsrfById = (csrfId) => {
+    try {
+        return csrfStore.delete(csrfId);
+    } catch (e) {
+        return false;
+    }
+};
+
+module.exports = { verificarToken, generateCsrfToken, verifyCsrfToken, encryptSymmetric, decryptSymmetric, sanitizeRequest, deleteCsrfById };

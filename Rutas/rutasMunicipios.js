@@ -3,6 +3,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
+const { body, param, validateRequest } = require('../Middlewares/validator');
 
 const prisma = require('../config.db');
 
@@ -16,7 +17,11 @@ app.get('/municipios', async (req, res) => {
     }
 });
 
-app.get('/municipios/:id', async (req, res) => {
+app.get(
+  '/municipios/:id',
+  [param('id').isInt().withMessage('id debe ser un número entero')],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
         const municipio = await prisma.municipio.findUnique({
@@ -30,10 +35,19 @@ app.get('/municipios/:id', async (req, res) => {
     }
 });
 
-app.post('/municipios', async (req, res) => {
+app.post(
+  '/municipios',
+  [
+    body('nombre').trim().notEmpty().withMessage('nombre es obligatorio').isLength({ max: 25 }),
+    body('url_imagen').optional().isString(),
+    body('descripcion').optional().isString(),
+  ],
+  validateRequest,
+  async (req, res) => {
     try {
+        const { nombre, url_imagen, descripcion } = req.body;
         const nuevoMunicipio = await prisma.municipio.create({
-            data: req.body
+            data: { nombre, url_imagen, descripcion }
         });
         res.status(201).json(nuevoMunicipio);
     } catch (error) {
@@ -42,12 +56,22 @@ app.post('/municipios', async (req, res) => {
     }
 });
 
-app.put('/municipios/:id', async (req, res) => {
+app.put(
+  '/municipios/:id',
+  [
+    param('id').isInt().withMessage('id debe ser un número entero'),
+    body('nombre').optional().trim().isLength({ max: 25 }),
+    body('url_imagen').optional().isString(),
+    body('descripcion').optional().isString(),
+  ],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
+        const { nombre, url_imagen, descripcion } = req.body;
         const municipioActualizado = await prisma.municipio.update({
             where: { id: Number(id) },
-            data: req.body
+            data: { nombre, url_imagen, descripcion }
         });
         res.status(200).json(municipioActualizado);
     } catch (error) {

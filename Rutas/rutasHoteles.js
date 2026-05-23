@@ -3,6 +3,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
+const { body, param, validateRequest } = require('../Middlewares/validator');
 
 const prisma = require('../config.db');
 
@@ -20,7 +21,11 @@ app.get('/hoteles', async (req, res)=>{
    }
 });
 
-app.get('/hoteles/:id', async (req, res) => {
+app.get(
+  '/hoteles/:id',
+  [param('id').isInt().withMessage('id debe ser un número entero')],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
         const hotel = await prisma.hotel.findUnique({
@@ -35,10 +40,64 @@ app.get('/hoteles/:id', async (req, res) => {
     }
 });
 
-app.post('/hoteles', async (req, res) => {
+app.post(
+  '/hoteles',
+  [
+    body('nombre_hotel').trim().notEmpty().withMessage('nombre_hotel es obligatorio').isLength({ max: 25 }),
+    body('numero_Calle').isInt().withMessage('numero_Calle debe ser un número entero'),
+    body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
+    body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
+    body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
+    body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
+    body('id_rese_a').isInt().withMessage('id_rese_a es obligatorio y debe ser un número entero'),
+    body('disponibilidad').optional().isInt(),
+    body('categoria').optional().isString().isLength({ max: 20 }),
+    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('email').optional().isEmail().withMessage('email no es válido'),
+    body('estadoConvenio').optional().isBoolean(),
+    body('imagen').optional().isString(),
+    body('descripcion').optional().isString().isLength({ max: 255 }),
+    body('calificacion').optional().isString().isLength({ max: 10 }),
+  ],
+  validateRequest,
+  async (req, res) => {
     try {
+        const {
+          nombre_hotel,
+          numero_Calle,
+          nombre_Calle,
+          codigoPostal,
+          id_municipio,
+          disponibilidad,
+          categoria,
+          telefono,
+          email,
+          estadoConvenio,
+          id_categoria,
+          id_rese_a,
+          imagen,
+          descripcion,
+          calificacion,
+        } = req.body;
+
         const nuevoHotel = await prisma.hotel.create({
-            data: req.body
+            data: {
+              nombre_hotel,
+              numero_Calle,
+              nombre_Calle,
+              codigoPostal,
+              id_municipio,
+              disponibilidad,
+              categoria,
+              telefono,
+              email,
+              estadoConvenio,
+              id_categoria,
+              id_rese_a,
+              imagen,
+              descripcion,
+              calificacion,
+            }
         });
         res.status(201).json(nuevoHotel);
     } catch (error) {
@@ -47,12 +106,67 @@ app.post('/hoteles', async (req, res) => {
     }
 });
 
-app.put('/hoteles/:id', async (req, res) => {
+app.put(
+  '/hoteles/:id',
+  [
+    param('id').isInt().withMessage('id debe ser un número entero'),
+    body('nombre_hotel').optional().trim().isLength({ max: 25 }),
+    body('numero_Calle').optional().isInt(),
+    body('nombre_Calle').optional().trim().isLength({ max: 50 }),
+    body('codigoPostal').optional().isInt(),
+    body('id_municipio').optional().isInt(),
+    body('id_categoria').optional().isInt(),
+    body('id_rese_a').optional().isInt(),
+    body('disponibilidad').optional().isInt(),
+    body('categoria').optional().isString().isLength({ max: 20 }),
+    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('email').optional().isEmail(),
+    body('estadoConvenio').optional().isBoolean(),
+    body('imagen').optional().isString(),
+    body('descripcion').optional().isString().isLength({ max: 255 }),
+    body('calificacion').optional().isString().isLength({ max: 10 }),
+  ],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
+        const {
+          nombre_hotel,
+          numero_Calle,
+          nombre_Calle,
+          codigoPostal,
+          id_municipio,
+          disponibilidad,
+          categoria,
+          telefono,
+          email,
+          estadoConvenio,
+          id_categoria,
+          id_rese_a,
+          imagen,
+          descripcion,
+          calificacion,
+        } = req.body;
+
         const hotelActualizado = await prisma.hotel.update({
             where: { id: Number(id) },
-            data: req.body
+            data: {
+              nombre_hotel,
+              numero_Calle,
+              nombre_Calle,
+              codigoPostal,
+              id_municipio,
+              disponibilidad,
+              categoria,
+              telefono,
+              email,
+              estadoConvenio,
+              id_categoria,
+              id_rese_a,
+              imagen,
+              descripcion,
+              calificacion,
+            }
         });
         res.status(200).json(hotelActualizado);
     } catch (error) {
