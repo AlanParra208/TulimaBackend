@@ -57,7 +57,8 @@ const verifyCsrfToken = (req, res, next) => {
     const rutasIgnoradas = [
         '/login', 
         '/login/mfa',
-        '/usuarios', // Tu ruta de registro
+        '/usuarios',
+        '/logout'
     ];
 
     // Si la ruta solicitada está en la lista blanca, permitimos el paso inmediatamente
