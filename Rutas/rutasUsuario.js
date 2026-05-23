@@ -37,21 +37,23 @@ passport.use(new GoogleStrategy({
   },
   async function(accessToken, refreshToken, profile, cb) {
     try {
-      // 1. Buscar si el usuario ya existe con ese Google ID
       let usuario = await prisma.usuario.findUnique({
         where: { googleId: profile.id }
       });
 
+      if (usuario && usuario.activo === false) {
+          return cb(new Error("Esta cuenta ha sido desactivada"), null);
+      }
+
       if (!usuario) {
-        // 2. Si no existe, lo creamos
         usuario = await prisma.usuario.create({
           data: {
             googleId: profile.id,
-            // Aquí mapeas los datos que te da Google a tus campos obligatorios
             primerNombre: profile.name.givenName || 'Usuario',
             apellidoPaterno: profile.name.familyName || '',
             nombreUsuario: profile.emails[0].value.split('@')[0], 
-            rol: 'user' // o el rol por defecto que manejes
+            rol: 'user',
+            activo: true 
           }
         });
       }
@@ -89,13 +91,15 @@ function(req, res)  {
 
 app.get('/auth/me', verificarToken, async (req, res) => {
     try {
-        // Buscamos al usuario usando el ID que el middleware guardó en req.usuarioId
-        const usuario = await prisma.usuario.findUnique({
-            where: { id_usuario: req.usuarioId }
+        const usuario = await prisma.usuario.findFirst({
+            where: { 
+                id_usuario: req.usuarioId,
+                activo: true 
+            }
         });
 
         if (!usuario) {
-            return res.status(404).json({ mensaje: "Usuario no encontrado" });
+            return res.status(404).json({ mensaje: "Usuario no encontrado o inactivo" });
         }
 
         res.json({
@@ -123,12 +127,13 @@ app.post('/login', async (req, res) => {
         const usuario = await prisma.usuario.findFirst({
             where: {
                 nombreUsuario: nombreUsuario,
-                contrase_a: contraseña 
+                contrase_a: contraseña,
+                activo: true 
             }
         });
 
         if (!usuario) {
-            return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+            return res.status(401).json({ error: 'Usuario o contraseña incorrectos, o cuenta inactiva' });
         }
 
         const userPayload = {
@@ -164,7 +169,9 @@ app.post('/logout', (req, res) => {
 // Llevar todos los usuarios (protegido)
 app.get('/usuarios', async (req, res) => {
     try {
-        const usuarios = await prisma.usuario.findMany();
+        const usuarios = await prisma.usuario.findMany({
+            where: { activo: true } 
+        });
         res.status(200).json(usuarios);
     } catch (error) {
         console.error('Error al obtener los usuarios:', error);
@@ -179,12 +186,15 @@ app.get('/usuarios/:id', async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
 
-        const usuario = await prisma.usuario.findUnique({
-            where: { id_usuario: userId }
+        const usuario = await prisma.usuario.findFirst({
+            where: { 
+                id_usuario: userId,
+                activo: true 
+            }
         });
 
         if (!usuario) {
-            return res.status(404).json({ message: 'Usuario no encontrado' });
+            return res.status(404).json({ message: 'Usuario no encontrado o inactivo' });
         }
         res.status(200).json(usuario);
     } catch (error) {
@@ -294,17 +304,18 @@ app.delete('/usuarios/:id', authenticateToken, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
 
-        await prisma.usuario.delete({
-            where: { id_usuario: userId }
+        await prisma.usuario.update({
+            where: { id_usuario: userId },
+            data: { activo: false }
         });
 
-        res.status(204).send(); // 204 No Content usualmente no lleva body JSON
+        res.status(200).json({ message: 'Usuario desactivado exitosamente' }); 
     } catch (error) {
-        console.error('Error al eliminar el usuario:', error);
+        console.error('Error al desactivar el usuario:', error);
         if (error.code === 'P2025') {
-            return res.status(404).json({ error: 'Usuario no encontrado para eliminar' });
+            return res.status(404).json({ error: 'Usuario no encontrado para desactivar' });
         }
-        res.status(500).json({ error: 'Error al eliminar el usuario' });
+        res.status(500).json({ error: 'Error al desactivar el usuario' });
     }
 });
 

@@ -186,6 +186,7 @@ model usuario {
   rol             String        @db.VarChar(6)
   correo          String?       @unique @db.VarChar(100)
   googleId        String?       @unique @db.VarChar(255)
+  activo          Boolean       @default(true)
   rese_a          rese_a[]
   suscripcion     suscripcion[]
 }
