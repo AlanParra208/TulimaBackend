@@ -60,7 +60,7 @@ const normalizeUserFields = (req, res, next) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: "http://localhost:8000/auth/google/CREAR"
+    callbackURL: "https://tulima-backend.vercel.app/auth/google/CREAR"
   },
   async function(accessToken, refreshToken, profile, cb) {
     try {
