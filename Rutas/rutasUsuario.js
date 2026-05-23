@@ -6,6 +6,7 @@ dotenv.config();
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const {verificarToken} = require('../Middlewares/middleware');
+const bcrypt = require('bcrypt');
 
 app.use(passport.initialize());
 
@@ -127,7 +128,6 @@ app.post('/login', async (req, res) => {
         const usuario = await prisma.usuario.findFirst({
             where: {
                 nombreUsuario: nombreUsuario,
-                contrase_a: contraseña,
                 activo: true 
             }
         });
@@ -135,6 +135,15 @@ app.post('/login', async (req, res) => {
         if (!usuario) {
             return res.status(401).json({ error: 'Usuario o contraseña incorrectos, o cuenta inactiva' });
         }
+        if (!usuario.contrase_a) {
+            return res.status(401).json({ error: 'Usuario o contraseña incorrectos, o cuenta inactiva' });
+       }
+
+       const match = await bcrypt.compare(contraseña, usuario.contrase_a);
+
+       if (!match) {
+        return res.status(401).json({ error: 'Usuario o contraseña incorrectos, o cuenta inactiva' });
+   }
 
         const userPayload = {
             id_usuario: usuario.id_usuario,
@@ -236,6 +245,9 @@ app.post('/usuarios', async (req, res) => {
             apMat = partesNombre.slice(3).join(" "); 
         }
 
+        const saltRounds = 10; // 10 iteraciones es el estándar seguro y rápido
+        const hashedPassword = await bcrypt.hash(data.contraseña, saltRounds);
+
         const nuevoUsuario = await prisma.usuario.create({
             data: {
                 primerNombre: nom1,
@@ -272,26 +284,32 @@ app.put('/usuarios/:id', authenticateToken, async (req, res) => {
         const userId = parseInt(req.params.id);
         const data = req.body;
 
+        let updateData = {
+            primerNombre: data.primerNombre,
+            segundoNombre: data.segundoNombre,
+            apellidoPaterno: data.apellidoPaterno,
+            apellidoMaterno: data.apellidoMaterno,
+            nombreUsuario: data.nombreUsuario,
+            telefono: data.telefono,
+            genero: data.genero,
+            edad: data.edad,
+            rol: data.rol
+        };
+
+        // Si el payload incluye una nueva contraseña, la encriptamos. Si no, no actualizamos ese campo.
+        if (data.contraseña) {
+            const saltRounds = 10;
+            updateData.contrase_a = await bcrypt.hash(data.contraseña, saltRounds);
+        }
+
         const usuarioActualizado = await prisma.usuario.update({
             where: { id_usuario: userId },
-            data: {
-                primerNombre: data.primerNombre,
-                segundoNombre: data.segundoNombre,
-                apellidoPaterno: data.apellidoPaterno,
-                apellidoMaterno: data.apellidoMaterno,
-                contraseña: data.contraseña,
-                nombreUsuario: data.nombreUsuario,
-                telefono: data.telefono,
-                genero: data.genero,
-                edad: data.edad,
-                rol: data.rol
-            }
+            data: updateData
         });
 
         res.status(200).json({ message: 'Usuario actualizado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el usuario:', error);
-        // Prisma arroja un error específico si intentas actualizar un ID que no existe
         if (error.code === 'P2025') {
             return res.status(404).json({ error: 'Usuario no encontrado para actualizar' });
         }
