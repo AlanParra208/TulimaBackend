@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-// Store en memoria para tokens CSRF: { csrfId => { token, expiresAt } }
+
 const csrfStore = new Map();
 
 const verificarToken = (req, res, next) => {
@@ -39,7 +39,7 @@ const generateCsrfToken = (req, res) => {
     res.cookie('csrf-id', csrfId, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: ttlMs
     });
 
@@ -51,9 +51,6 @@ const verifyCsrfToken = (req, res, next) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
         return next();
     }
-
-    // 🟢 2. EXCEPCIÓN DE RUTAS PÚBLICAS
-    // Rutas que manejan POST pero que no requieren CSRF porque el usuario apenas va a entrar
     const rutasIgnoradas = [
         '/login', 
         '/login/mfa',
@@ -61,12 +58,10 @@ const verifyCsrfToken = (req, res, next) => {
         '/logout'
     ];
 
-    // Si la ruta solicitada está en la lista blanca, permitimos el paso inmediatamente
     if (rutasIgnoradas.includes(req.path)) {
         return next();
     }
 
-    // 3. Validación CSRF para el resto de los endpoints protegidos
     const tokenFromHeader = req.headers['x-csrf-token'];
     const csrfId = req.cookies['csrf-id'];
 
@@ -88,7 +83,6 @@ const verifyCsrfToken = (req, res, next) => {
         return res.status(403).json({ error: 'Token CSRF inválido' });
     }
 
-    // Opción: renovar el token para mayor seguridad (rotación) — aquí no rotamos.
     next();
 };
 
