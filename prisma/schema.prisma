@@ -9,7 +9,7 @@ datasource db {
 }
 
 model categoria {
-  id_categoria      Int                 @id
+  id_categoria      Int                 @id @default(autoincrement())
   nombre            String              @db.VarChar(50)
   destino_turistico destino_turistico[]
   evento            evento[]
@@ -18,7 +18,7 @@ model categoria {
 }
 
 model destino_turistico {
-  id_destino     Int       @id
+  id_destino     Int       @id @default(autoincrement())
   id_municipio   Int
   nombre         String?   @db.VarChar(100)
   numero_Calle   Int?
@@ -42,7 +42,7 @@ model destino_turistico {
 }
 
 model evento {
-  id_evento         Int               @id
+  id_evento         Int               @id @default(autoincrement())
   id_destino        Int
   nombre_Evento     String            @db.VarChar(50)
   numero_Calle      Int
@@ -65,7 +65,7 @@ model evento {
 }
 
 model hotel {
-  id_hotel           Int       @id
+  id_hotel           Int       @id @default(autoincrement())
   nombre_hotel       String    @db.VarChar(25)
   numero_Calle       Int
   nombre_Calle       String    @db.VarChar(50)
@@ -91,7 +91,7 @@ model hotel {
 }
 
 model municipio {
-  id_municipio      Int                 @id
+  id_municipio      Int                 @id @default(autoincrement())
   nombre            String              @db.VarChar(25)
   url_imagen        String?             @db.Text
   descripcion       String?             @db.Text
@@ -102,7 +102,7 @@ model municipio {
 }
 
 model provedor_tour {
-  id_provedor    Int       @id
+  id_provedor    Int       @id @default(autoincrement())
   nombre         String    @db.VarChar(30)
   tipoTour       String?   @db.VarChar(20)
   telefono       BigInt?
@@ -120,7 +120,7 @@ model provedor_tour {
 }
 
 model rese_a {
-  id_rese_a         Int                 @id @map("id_reseña")
+  id_rese_a         Int                 @id @map("id_reseña") @default(autoincrement())
   id_usuario        Int
   calificacion      Decimal             @db.Decimal(1, 0)
   fecha             DateTime            @db.DateTime(0)
@@ -136,7 +136,7 @@ model rese_a {
 }
 
 model restaurante {
-  id_restaurante Int       @id
+  id_restaurante Int       @id @default(autoincrement())
   nombre         String    @db.VarChar(50)
   tipo           String?   @db.VarChar(100)
   numero_Calle   Int
@@ -163,7 +163,7 @@ model restaurante {
 }
 
 model suscripcion {
-  id_suscripcion    Int      @id
+  id_suscripcion    Int      @id @default(autoincrement())
   id_usuario        Int
   fechaPago         DateTime @db.DateTime(0)
   fechaFinalizacion DateTime @db.DateTime(0)
