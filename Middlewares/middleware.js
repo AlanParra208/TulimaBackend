@@ -22,23 +22,12 @@ const verificarToken = (req, res, next) => {
 };
 
 const generateCsrfToken = (req, res) => {
-    // Crear un id que asocie el token en el servidor. Usamos cookie httpOnly 'csrf-id'
-    const csrfId = crypto.randomBytes(16).toString('hex');
     const token = crypto.randomBytes(32).toString('hex');
+    const ttlMs = 15 * 60 * 1000; 
 
-    // Guardar en store en memoria con TTL
-    const ttlMs = 15 * 60 * 1000; // 15 minutos
-    const expiresAt = Date.now() + ttlMs;
-    csrfStore.set(csrfId, { token, expiresAt });
-
-    // Limpieza simple de expirados
-    for (const [key, value] of csrfStore.entries()) {
-        if (value.expiresAt < Date.now()) csrfStore.delete(key);
-    }
-
-    res.cookie('csrf-id', csrfId, {
+    res.cookie('csrf-token-cookie', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'none',
         maxAge: ttlMs
     });
@@ -47,10 +36,10 @@ const generateCsrfToken = (req, res) => {
 };
 
 const verifyCsrfToken = (req, res, next) => {
-    // 1. Ignorar peticiones seguras de solo lectura
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
         return next();
     }
+    
     const rutasIgnoradas = [
         '/login', 
         '/login/mfa',
@@ -63,24 +52,14 @@ const verifyCsrfToken = (req, res, next) => {
     }
 
     const tokenFromHeader = req.headers['x-csrf-token'];
-    const csrfId = req.cookies['csrf-id'];
+    const tokenFromCookie = req.cookies['csrf-token-cookie'];
 
-    if (!tokenFromHeader || !csrfId) {
+    if (!tokenFromHeader || !tokenFromCookie) {
         return res.status(403).json({ error: 'Token CSRF inválido o faltante' });
     }
 
-    const record = csrfStore.get(csrfId);
-    if (!record) {
-        return res.status(403).json({ error: 'Token CSRF expirado o no encontrado' });
-    }
-
-    if (record.expiresAt < Date.now()) {
-        csrfStore.delete(csrfId);
-        return res.status(403).json({ error: 'Token CSRF expirado' });
-    }
-
-    if (record.token !== tokenFromHeader) {
-        return res.status(403).json({ error: 'Token CSRF inválido' });
+    if (tokenFromHeader !== tokenFromCookie) {
+        return res.status(403).json({ error: 'Token CSRF manipulado o no coincidente' });
     }
 
     next();
