@@ -49,7 +49,7 @@ app.use(require('./Rutas/rutasHoteles'));
 app.use(require('./Rutas/rutasMunicipios'));
 app.use(require('./Rutas/rutasRestaurantes'));
 app.use(require('./Rutas/rutasTours'));
-
+app.use(require('./Rutas/rutasCategoria'));
 
 app.listen(process.env.PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${process.env.PORT}`);
