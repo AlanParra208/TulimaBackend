@@ -29,7 +29,7 @@ app.get(
     const { id } = req.params;
     try {
         const hotel = await prisma.hotel.findUnique({
-            where: { id: Number(id) },
+            where: { id_hotel: Number(id) },
             include: { municipio: true }
         });
         if (!hotel) return res.status(404).json({ error: 'Hotel no encontrado' });
@@ -149,7 +149,7 @@ app.put(
         } = req.body;
 
         const hotelActualizado = await prisma.hotel.update({
-            where: { id: Number(id) },
+            where: { id_hotel: Number(id) },
             data: {
               nombre_hotel,
               numero_Calle,
@@ -179,7 +179,7 @@ app.delete('/hoteles/:id', async (req, res) => {
     const { id } = req.params;
     try {
         await prisma.hotel.delete({
-            where: { id: Number(id) }
+            where: { id_hotel: Number(id) }
         });
         res.status(200).json({ message: 'Hotel eliminado correctamente' });
     } catch (error) {
