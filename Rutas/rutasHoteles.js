@@ -10,8 +10,8 @@ const prisma = require('../config.db');
 app.get('/hoteles', async (req, res)=>{
     try{
         const hoteles = await prisma.hotel.findMany({
+            where: { activo: true },
             include: {
-                where: { activo: true },
                 municipio: true
             }
         });
