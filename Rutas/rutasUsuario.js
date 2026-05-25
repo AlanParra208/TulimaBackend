@@ -93,7 +93,10 @@ passport.use(new GoogleStrategy({
 ));
 
 // Ruta de autenticación con Google
-app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.get('/auth/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'],
+  prompt: 'select_account'
+}));
 
 // Callback de Google después de la autenticación
 app.get('/auth/google/CREAR', passport.authenticate('google', { failureRedirect: '/login', session: false }), 
