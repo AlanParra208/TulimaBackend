@@ -31,6 +31,7 @@ model destino_turistico {
   id_categoria   Int
   imagen         String?   @db.Text
   calificacion   String?   @db.VarChar(100)
+  activo         Boolean   @default(true)
   categoria      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "destino_turistico_categoria_FK")
   municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "destino_turistico_municipio_FK")
   rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "destino_turistico_reseña_FK")
@@ -55,6 +56,7 @@ model evento {
   fechaTermino      DateTime          @db.DateTime(0)
   id_rese_a         Int               @map("id_reseña")
   id_categoria      Int
+  activo            Boolean   @default(true)
   categoria         categoria         @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "evento_categoria_FK")
   destino_turistico destino_turistico @relation(fields: [id_destino], references: [id_destino], onUpdate: Restrict, map: "evento_destino_turistico_FK")
   rese_a            rese_a            @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "evento_reseña_FK")
@@ -81,6 +83,7 @@ model hotel {
   imagen             String?   @db.Text
   descripcion        String?   @db.VarChar(255)
   calificacion       String?   @db.VarChar(10)
+  activo             Boolean @default(true)
   categoria_relacion categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "hotel_categoria_FK")
   municipio          municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
   rese_a             rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "hotel_reseña_FK")
@@ -111,6 +114,7 @@ model provedor_tour {
   id_rese_a      Int?      @map("id_reseña")
   imagen         String?   @db.Text
   id_municipio   Int
+  activo         Boolean   @default(true)
   calificacion   String?   @db.VarChar(100)
   municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "provedor_tour_municipio_FK")
   rese_a         rese_a?   @relation(fields: [id_rese_a], references: [id_rese_a], onDelete: Restrict, onUpdate: Restrict, map: "provedor_tour_reseña_FK")
@@ -153,6 +157,7 @@ model restaurante {
   calificacion   String?   @db.VarChar(100)
   horarioAbierto DateTime? @db.Time(0)
   horarioCerrado DateTime? @db.Time(0)
+  activo         Boolean   @default(true)
   categoria      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "restaurante_categoria_FK")
   municipio      municipio @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "restaurante_municipio_FK")
   rese_a         rese_a    @relation(fields: [id_rese_a], references: [id_rese_a], onUpdate: Restrict, map: "restaurante_reseña_FK")
