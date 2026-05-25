@@ -181,12 +181,21 @@ app.put(
     }
 });
 
-app.delete('/hoteles/:id', async (req, res) => {
+app.delete('/hoteles/:id'
+    [param('id').isInt().withMessage('id debe ser un número entero')], 
+    validateRequest,
+    async (req, res) => {
+    const { id } = req.params;
+    try{
     await prisma.hotel.update({
         where: { id_hotel: Number(req.params.id) },
         data: { activo: false }
     });
     res.status(200).json({ message: 'Hotel desactivado correctamente' });
+    }catch(error){
+        console.error('Error al desactivar hotel:', error);
+        res.status(500).json({ error: 'Error al desactivar el hotel o registro no encontrado' });
+    }
 });
 
 module.exports = app;

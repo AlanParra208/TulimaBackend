@@ -10,6 +10,7 @@ const prisma = require('../config.db');
 app.get('/restaurantes', async (req, res)=>{
     try{
         const restaurantes = await prisma.restaurante.findMany({
+            where: { activo: true },
             include: {
                 municipio: true
             }
@@ -28,8 +29,8 @@ app.get(
   async (req, res) => {
     const { id } = req.params;
     try {
-        const restaurante = await prisma.restaurante.findUnique({
-            where: { id: Number(id) },
+        const restaurante = await prisma.restaurante.findFirst({
+            where: { id_restaurante: Number(id), activo: true },
             include: { municipio: true }
         });
         if (!restaurante) return res.status(404).json({ error: 'Restaurante no encontrado' });
@@ -153,7 +154,7 @@ app.put(
           horarioCerrado,
         } = req.body;
         const restauranteActualizado = await prisma.restaurante.update({
-            where: { id: Number(id) },
+            where: { id_restaurante: Number(id), activo: true },
             data: {
               nombre,
               tipo,
@@ -180,13 +181,17 @@ app.put(
     }
 });
 
-app.delete('/restaurantes/:id', async (req, res) => {
+app.delete('/restaurantes/:id'
+    [param('id').isInt().withMessage('id debe ser un número entero')], 
+    validateRequest,
+    async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.restaurante.delete({
-            where: { id: Number(id) }
+        await prisma.restaurante.update({
+            where: { id_restaurante: Number(id), activo: true },
+            data: { activo: false }
         });
-        res.status(200).json({ message: 'Restaurante eliminado correctamente' });
+        res.status(200).json({ message: 'Restaurante desactivado correctamente' });
     } catch (error) {
         console.error('Error al eliminar restaurante:', error);
         res.status(500).json({ error: 'Error al eliminar el restaurante' });

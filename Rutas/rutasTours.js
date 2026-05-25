@@ -11,6 +11,7 @@ app.get('/tours', async (req, res)=>{
     try{
         const tours = await prisma.provedor_tour.findMany({
             include: {
+                where: { activo: true },
                 municipio: true
             }
         });
@@ -28,8 +29,8 @@ app.get(
   async (req, res) => {
     const { id } = req.params;
     try {
-        const tour = await prisma.provedor_tour.findUnique({
-            where: { id: Number(id) },
+        const tour = await prisma.provedor_tour.findFirst({
+            where: { id_provedor: Number(id), activo: true },
             include: { municipio: true }
         });
         if (!tour) return res.status(404).json({ error: 'Tour no encontrado' });
@@ -117,7 +118,7 @@ app.put(
           calificacion,
         } = req.body;
         const tourActualizado = await prisma.provedor_tour.update({
-            where: { id: Number(id) },
+            where: { id_provedor: Number(id) },
             data: {
               nombre,
               id_municipio,
@@ -137,16 +138,20 @@ app.put(
     }
 });
 
-app.delete('/tours/:id', async (req, res) => {
+app.delete('/tours/:id'
+    [param('id').isInt().withMessage('id debe ser un número entero')], 
+    validateRequest,
+    async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.provedor_tour.delete({
-            where: { id: Number(id) }
+        await prisma.provedor_tour.update({
+            where: { id_provedor: Number(id), activo: true },
+            data: { activo: false }
         });
-        res.status(200).json({ message: 'Tour eliminado correctamente' });
+        res.status(200).json({ message: 'Tour desactivado correctamente' });
     } catch (error) {
-        console.error('Error al eliminar tour:', error);
-        res.status(500).json({ error: 'Error al eliminar el tour' });
+        console.error('Error al desactivar tour:', error);
+        res.status(500).json({ error: 'Error al desactivar el tour o registro no encontrado' });
     }
 });
 

@@ -23,7 +23,7 @@ model destino_turistico {
   nombre         String?   @db.VarChar(100)
   numero_Calle   Int?
   nombre_Calle   String    @db.VarChar(50)
-  codifoPostal   Int
+  codigoPostal   Int
   horarioAbierto DateTime? @db.Time(0)
   horarioCerrado DateTime? @db.Time(0)
   estadoConvenio Boolean

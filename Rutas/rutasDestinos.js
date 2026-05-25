@@ -10,6 +10,7 @@ const prisma = require('../config.db');
 app.get('/destinos', async (req, res)=>{
     try{
         const destinos = await prisma.destino_turistico.findMany({
+            where: { activo: true },
             include: {
                 municipio: true
             }
@@ -28,15 +29,18 @@ app.get(
   async (req, res) => {
     const { id } = req.params;
     try {
-        const destino = await prisma.destino_turistico.findUnique({
-            where: { id: Number(id) }, 
+        const destino = await prisma.destino_turistico.findFirst({
+            where: { 
+                id_destino: Number(id), 
+                activo: true 
+            },
             include: {
                 municipio: true
             }
         });
 
         if (!destino) {
-            return res.status(404).json({ error: 'Destino turístico no encontrado' });
+            return res.status(404).json({ error: 'Destino turístico no encontrado o inactivo' });
         }
 
         res.status(200).json(destino);
@@ -51,7 +55,7 @@ app.post(
   [
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
-    body('codifoPostal').isInt().withMessage('codifoPostal debe ser un número entero'),
+    body('codifoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
     body('id_rese_a').isInt().withMessage('id_rese_a es obligatorio y debe ser un número entero'),
     body('nombre').optional().isString().isLength({ max: 100 }),
@@ -140,7 +144,7 @@ app.put(
         } = req.body;
 
         const destinoActualizado = await prisma.destino_turistico.update({
-            where: { id: Number(id) }, 
+            where: { id_destino: Number(id) },
             data: {
               id_municipio,
               nombre,
@@ -163,17 +167,22 @@ app.put(
     }
 });
 
-app.delete('/destinos/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await prisma.destino_turistico.delete({
-            where: { id: Number(id) } 
-        });
-        res.status(200).json({ message: 'Destino turístico eliminado correctamente' });
-    } catch (error) {
-        console.error('Error al eliminar destino:', error);
-        res.status(500).json({ error: 'Error al eliminar el destino turístico o registro no encontrado' });
-    }
-});
+app.delete(
+    '/destinos/:id',
+    [param('id').isInt().withMessage('id debe ser un número entero')],
+    validateRequest,
+    async (req, res) => {
+      const { id } = req.params;
+      try {
+          await prisma.destino_turistico.update({
+              where: { id_destino: Number(id) }, 
+              data: { activo: false }
+          });
+          res.status(200).json({ message: 'Destino turístico eliminado correctamente' });
+      } catch (error) {
+          console.error('Error al eliminar destino:', error);
+          res.status(500).json({ error: 'Error al eliminar el destino turístico o registro no encontrado' });
+      }
+  });
 
 module.exports = app;
