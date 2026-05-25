@@ -194,7 +194,11 @@ app.post(
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', // 'none' permite cookies entre distintos dominios
             maxAge: 3600000
         });
-        res.status(201).json({mensaje: "Login exitoso", token});
+        res.status(201).json({
+          mensaje: "Login exitoso", 
+          token,
+          usuario: userPayload
+      });
 
     } catch (error) {
         console.error('Error al consultar usuario:', error);
@@ -363,7 +367,11 @@ app.post(
         maxAge: 3600000
       });
 
-      res.status(200).json({ mensaje: 'Login MFA exitoso', token: tokenFinal });
+      res.status(201).json({
+        mensaje: "Login MFA exitoso", 
+        token: tokenFinal,
+        usuario: userPayload 
+    });
     } catch (error) {
       console.error('Error en login MFA:', error);
       res.status(500).json({ error: 'Error durante la autenticación MFA' });
