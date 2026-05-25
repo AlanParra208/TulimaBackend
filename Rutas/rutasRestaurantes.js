@@ -82,7 +82,7 @@ app.post(
           horarioAbierto,
           horarioCerrado,
         } = req.body;
-        const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;w
+        const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
 
         const nuevoRestaurante = await prisma.restaurante.create({
             data: {
