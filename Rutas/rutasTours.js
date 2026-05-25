@@ -10,8 +10,8 @@ const prisma = require('../config.db');
 app.get('/tours', async (req, res)=>{
     try{
         const tours = await prisma.provedor_tour.findMany({
+            where: { activo: true },
             include: {
-                where: { activo: true },
                 municipio: true
             }
         });
