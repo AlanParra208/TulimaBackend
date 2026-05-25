@@ -83,6 +83,7 @@ app.post(
           imagen,
           calificacion,
         } = req.body;
+        const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
 
         const nuevoDestino = await prisma.destino_turistico.create({
             data: {
@@ -91,8 +92,8 @@ app.post(
               numero_Calle,
               nombre_Calle,
               codifoPostal,
-              horarioAbierto,
-              horarioCerrado,
+              horarioAbierto: formatearHora(horarioAbierto),
+              horarioCerrado: formatearHora(horarioCerrado),
               estadoConvenio,
               id_rese_a,
               id_categoria,
@@ -143,6 +144,8 @@ app.put(
           calificacion,
         } = req.body;
 
+        const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
+
         const destinoActualizado = await prisma.destino_turistico.update({
             where: { id_destino: Number(id) },
             data: {
@@ -151,8 +154,8 @@ app.put(
               numero_Calle,
               nombre_Calle,
               codifoPostal,
-              horarioAbierto,
-              horarioCerrado,
+              horarioAbierto: formatearHora(horarioAbierto),
+              horarioCerrado: formatearHora(horarioCerrado),
               estadoConvenio,
               id_rese_a,
               id_categoria,
