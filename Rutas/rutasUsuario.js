@@ -110,12 +110,16 @@ function(req, res)  {
     const token = jwt.sign(userPayload, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // true en Vercel, false en localhost
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', // 'none' permite cookies entre distintos dominios
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         maxAge: 3600000
     });
 
-    res.redirect('https://tulima.vercel.app/'); 
+    if (req.user.rol === 'admin' || req.user.id_rol === 1) {
+      res.redirect('https://tulima.vercel.app/admin');
+      } else {
+          res.redirect('https://tulima.vercel.app/');
+      }
 }
 );
 
