@@ -157,7 +157,7 @@ app.put(
         const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
 
         const restauranteActualizado = await prisma.restaurante.update({
-            where: { id_restaurante: Number(id), activo: true },
+            where: { id_restaurante: Number(id)},
             data: {
               nombre,
               tipo,
@@ -191,7 +191,7 @@ app.delete('/restaurantes/:id'
     const { id } = req.params;
     try {
         await prisma.restaurante.update({
-            where: { id_restaurante: Number(id), activo: true },
+            where: { id_restaurante: Number(id)},
             data: { activo: false }
         });
         res.status(200).json({ message: 'Restaurante desactivado correctamente' });
