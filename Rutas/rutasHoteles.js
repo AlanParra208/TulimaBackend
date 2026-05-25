@@ -11,6 +11,7 @@ app.get('/hoteles', async (req, res)=>{
     try{
         const hoteles = await prisma.hotel.findMany({
             include: {
+                where: { activo: true },
                 municipio: true
             }
         });
@@ -22,23 +23,28 @@ app.get('/hoteles', async (req, res)=>{
 });
 
 app.get(
-  '/hoteles/:id',
-  [param('id').isInt().withMessage('id debe ser un número entero')],
-  validateRequest,
-  async (req, res) => {
-    const { id } = req.params;
-    try {
-        const hotel = await prisma.hotel.findUnique({
-            where: { id_hotel: Number(id) },
-            include: { municipio: true }
-        });
-        if (!hotel) return res.status(404).json({ error: 'Hotel no encontrado' });
-        res.status(200).json(hotel);
-    } catch (error) {
-        console.error('Error al consultar el hotel:', error);
-        res.status(500).json({ error: 'Error al obtener el hotel' });
-    }
-});
+    '/hoteles/:id',
+    [param('id').isInt().withMessage('id debe ser un número entero')],
+    validateRequest,
+    async (req, res) => {
+      const { id } = req.params;
+      try {
+          const hotel = await prisma.hotel.findFirst({
+              where: { 
+                  id_hotel: Number(id),
+                  activo: true 
+              },
+              include: { municipio: true }
+          });
+          
+          if (!hotel) return res.status(404).json({ error: 'Hotel no encontrado o inactivo' });
+          
+          res.status(200).json(hotel);
+      } catch (error) {
+          console.error('Error al consultar el hotel:', error);
+          res.status(500).json({ error: 'Error al obtener el hotel' });
+      }
+  });
 
 app.post(
   '/hoteles',
@@ -176,16 +182,11 @@ app.put(
 });
 
 app.delete('/hoteles/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await prisma.hotel.delete({
-            where: { id_hotel: Number(id) }
-        });
-        res.status(200).json({ message: 'Hotel eliminado correctamente' });
-    } catch (error) {
-        console.error('Error al eliminar hotel:', error);
-        res.status(500).json({ error: 'Error al eliminar el hotel' });
-    }
+    await prisma.hotel.update({
+        where: { id_hotel: Number(req.params.id) },
+        data: { activo: false }
+    });
+    res.status(200).json({ message: 'Hotel desactivado correctamente' });
 });
 
 module.exports = app;
