@@ -184,6 +184,8 @@ app.put(
     }
 });
 
+//borrado logico
+
 app.delete('/restaurantes/:id'
     [param('id').isInt().withMessage('id debe ser un número entero')], 
     validateRequest,
