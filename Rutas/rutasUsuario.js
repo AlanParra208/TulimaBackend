@@ -16,26 +16,9 @@ app.use(passport.initialize());
 
 const prisma = require('../config.db');
 
-// Le enseñamos a JavaScript a serializar los BigInt convirtiéndolos a String
 BigInt.prototype.toJSON = function () {
   return this.toString();
 };
-
-// Middleware que verifica el JWT
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    let token = authHeader && authHeader.split(' ')[1];
-    if (!token && req.cookies) {
-        token = req.cookies.token;
-    }
-    if (!token) return res.status(401).json({ error: 'Token no provisto' });
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Token inválido' });
-        req.user = user;
-        next();
-    });
-}
 
 const sanitizeUsuario = (usuario) => {
     if (!usuario) return usuario;
@@ -243,7 +226,7 @@ const userCanManage = (req, userId) => {
 
 app.get(
   '/usuarios/:id/mfa/setup',
-  authenticateToken,
+  verificarToken,
   [param('id').isInt().withMessage('id debe ser un número entero')],
   validateRequest,
   async (req, res) => {
@@ -284,7 +267,7 @@ app.get(
 
 app.post(
   '/usuarios/:id/mfa/verify',
-  authenticateToken,
+  verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('token').trim().notEmpty().withMessage('token es obligatorio').isLength({ min: 6, max: 10 })
@@ -387,7 +370,7 @@ app.post(
 );
 
 // Llevar todos los usuarios (protegido)
-app.get('/usuarios', authenticateToken, async (req, res) => {
+app.get('/usuarios', verificarToken, async (req, res) => {
     try {
         const usuarios = await prisma.usuario.findMany({
             where: { activo: true } 
@@ -404,7 +387,7 @@ app.get('/usuarios', authenticateToken, async (req, res) => {
 // Llevar un usuario especifico por id (protegido)
 app.get(
   '/usuarios/:id',
-  authenticateToken,
+  verificarToken,
   [param('id').isInt().withMessage('id debe ser un número entero')],
   validateRequest,
   async (req, res) => {
@@ -505,7 +488,7 @@ app.post(
 // Modificar un usuario por id (protegido)
 app.put(
   '/usuarios/:id',
-  authenticateToken,
+  verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('primerNombre').optional().trim().isLength({ max: 50 }),
@@ -559,7 +542,7 @@ app.put(
 });
 
 // Eliminar un usuario por id (protegido)
-app.delete('/usuarios/:id', authenticateToken, async (req, res) => {
+app.delete('/usuarios/:id', verificarToken, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
 
