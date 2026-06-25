@@ -61,9 +61,7 @@ app.post(
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('tipoServicio').optional().isString().isLength({ max: 50 }),
     body('estadoConvenio').optional().isBoolean(),
-    body('id_rese_a').optional().isInt(),
     body('imagen').optional().isString(),
-    body('calificacion').optional().isString().isLength({ max: 100 }),
   ],
   validateRequest,
   async (req, res) => {
@@ -75,9 +73,7 @@ app.post(
           telefono,
           tipoServicio,
           estadoConvenio,
-          id_rese_a,
           imagen,
-          calificacion,
           activo,
         } = req.body;
         const nuevoTour = await prisma.provedor_tour.create({
@@ -88,9 +84,7 @@ app.post(
               telefono,
               tipoServicio,
               estadoConvenio,
-              id_rese_a,
               imagen,
-              calificacion,
               activo,
             }
         });
@@ -111,9 +105,7 @@ app.put(
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('tipoServicio').optional().isString().isLength({ max: 50 }),
     body('estadoConvenio').optional().isBoolean(),
-    body('id_rese_a').optional().isInt(),
     body('imagen').optional().isString(),
-    body('calificacion').optional().isString().isLength({ max: 100 }),
     body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
   ],
   validateRequest,
@@ -127,9 +119,7 @@ app.put(
           telefono,
           tipoServicio,
           estadoConvenio,
-          id_rese_a,
           imagen,
-          calificacion,
           activo,
         } = req.body;
         const tourActualizado = await prisma.provedor_tour.update({
@@ -141,9 +131,7 @@ app.put(
               telefono,
               tipoServicio,
               estadoConvenio,
-              id_rese_a,
               imagen,
-              calificacion,
               activo,
             }
         });

@@ -67,7 +67,6 @@ app.post(
     body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
     body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
-    body('id_rese_a').isInt().withMessage('id_rese_a es obligatorio y debe ser un número entero'),
     body('disponibilidad').optional().isInt(),
     body('categoria').optional().isString().isLength({ max: 20 }),
     body('telefono').optional().isString().isLength({ max: 20 }),
@@ -75,7 +74,6 @@ app.post(
     body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('descripcion').optional().isString().isLength({ max: 255 }),
-    body('calificacion').optional().isString().isLength({ max: 10 }),
   ],
   validateRequest,
   async (req, res) => {
@@ -92,10 +90,8 @@ app.post(
           email,
           estadoConvenio,
           id_categoria,
-          id_rese_a,
           imagen,
           descripcion,
-          calificacion,
           activo,
         } = req.body;
 
@@ -112,10 +108,8 @@ app.post(
               email,
               estadoConvenio,
               id_categoria,
-              id_rese_a,
               imagen,
               descripcion,
-              calificacion,
               activo,
             }
         });
@@ -136,7 +130,6 @@ app.put(
     body('codigoPostal').optional().isInt(),
     body('id_municipio').optional().isInt(),
     body('id_categoria').optional().isInt(),
-    body('id_rese_a').optional().isInt(),
     body('disponibilidad').optional().isInt(),
     body('categoria').optional().isString().isLength({ max: 20 }),
     body('telefono').optional().isString().isLength({ max: 20 }),
@@ -144,7 +137,6 @@ app.put(
     body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('descripcion').optional().isString().isLength({ max: 255 }),
-    body('calificacion').optional().isString().isLength({ max: 10 }),
     body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
   ],
   validateRequest,
@@ -163,10 +155,8 @@ app.put(
           email,
           estadoConvenio,
           id_categoria,
-          id_rese_a,
           imagen,
           descripcion,
-          calificacion,
           activo,
         } = req.body;
 
@@ -184,10 +174,8 @@ app.put(
               email,
               estadoConvenio,
               id_categoria,
-              id_rese_a,
               imagen,
               descripcion,
-              calificacion,
               activo,
             }
         });

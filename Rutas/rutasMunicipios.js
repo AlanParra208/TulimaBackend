@@ -80,7 +80,10 @@ app.put(
     }
 });
 
-app.delete('/municipios/:id', async (req, res) => {
+app.delete('/municipios/:id',
+    [param('id').isInt().withMessage('id debe ser un número entero')],
+    validateRequest,
+    async (req, res) => {
     const { id } = req.params;
     try {
         await prisma.municipio.delete({
