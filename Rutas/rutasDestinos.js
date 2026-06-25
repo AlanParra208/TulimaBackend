@@ -68,14 +68,12 @@ app.post(
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
     body('codifoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
-    body('id_rese_a').isInt().withMessage('id_rese_a es obligatorio y debe ser un número entero'),
     body('nombre').optional().isString().isLength({ max: 100 }),
     body('numero_Calle').optional().isInt(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
     body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
-    body('calificacion').optional().isString().isLength({ max: 100 }),
   ],
   validateRequest,
   async (req, res) => {
@@ -89,10 +87,8 @@ app.post(
           horarioAbierto,
           horarioCerrado,
           estadoConvenio,
-          id_rese_a,
           id_categoria,
           imagen,
-          calificacion,
           activo,
         } = req.body;
         const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
@@ -107,10 +103,8 @@ app.post(
               horarioAbierto: formatearHora(horarioAbierto),
               horarioCerrado: formatearHora(horarioCerrado),
               estadoConvenio,
-              id_rese_a,
               id_categoria,
               imagen,
-              calificacion,
               activo,
             }
         });
@@ -129,14 +123,12 @@ app.put(
     body('nombre_Calle').optional().trim().isLength({ max: 50 }),
     body('codifoPostal').optional().isInt(),
     body('id_categoria').optional().isInt(),
-    body('id_rese_a').optional().isInt(),
     body('nombre').optional().isString().isLength({ max: 100 }),
     body('numero_Calle').optional().isInt(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
     body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
-    body('calificacion').optional().isString().isLength({ max: 100 }),
     body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
   ],
   validateRequest,
@@ -152,10 +144,8 @@ app.put(
           horarioAbierto,
           horarioCerrado,
           estadoConvenio,
-          id_rese_a,
           id_categoria,
           imagen,
-          calificacion,
           activo,
         } = req.body;
 
@@ -172,10 +162,8 @@ app.put(
               horarioAbierto: formatearHora(horarioAbierto),
               horarioCerrado: formatearHora(horarioCerrado),
               estadoConvenio,
-              id_rese_a,
               id_categoria,
               imagen,
-              calificacion,
               activo,
             }
         });
