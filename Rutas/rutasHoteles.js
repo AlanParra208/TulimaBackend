@@ -22,6 +22,18 @@ app.get('/hoteles', async (req, res)=>{
    }
 });
 
+app.get('/hoteles/admin/todos', async (req, res) => {
+  try {
+    const hoteles = await prisma.hotel.findMany({
+      include: { municipio: true, categoria: true }
+    });
+    res.status(200).json(hoteles);
+  } catch (error) {
+    console.error('Error al obtener todos los hoteles:', error);
+    res.status(500).json({ error: 'Error al obtener hoteles' });
+  }
+});
+
 app.get(
     '/hoteles/:id',
     [param('id').isInt().withMessage('id debe ser un número entero')],
@@ -84,6 +96,7 @@ app.post(
           imagen,
           descripcion,
           calificacion,
+          activo,
         } = req.body;
 
         const nuevoHotel = await prisma.hotel.create({
@@ -103,6 +116,7 @@ app.post(
               imagen,
               descripcion,
               calificacion,
+              activo,
             }
         });
         res.status(201).json(nuevoHotel);
@@ -131,6 +145,7 @@ app.put(
     body('imagen').optional().isString(),
     body('descripcion').optional().isString().isLength({ max: 255 }),
     body('calificacion').optional().isString().isLength({ max: 10 }),
+    body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
   ],
   validateRequest,
   async (req, res) => {
@@ -152,6 +167,7 @@ app.put(
           imagen,
           descripcion,
           calificacion,
+          activo,
         } = req.body;
 
         const hotelActualizado = await prisma.hotel.update({
@@ -172,6 +188,7 @@ app.put(
               imagen,
               descripcion,
               calificacion,
+              activo,
             }
         });
         res.status(200).json(hotelActualizado);
@@ -181,7 +198,7 @@ app.put(
     }
 });
 
-app.delete('/hoteles/:id'
+app.delete('/hoteles/:id',
     [param('id').isInt().withMessage('id debe ser un número entero')], 
     validateRequest,
     async (req, res) => {

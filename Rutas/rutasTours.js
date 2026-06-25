@@ -22,6 +22,17 @@ app.get('/tours', async (req, res)=>{
    }
 });
 
+app.get('/tours/admin/todos', async (req, res) => {
+  try {
+    const tours = await prisma.provedor_tour.findMany({
+      include: { municipio: true }
+    });
+    res.status(200).json(tours);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener tours' });
+  }
+});
+
 app.get(
   '/tours/:id',
   [param('id').isInt().withMessage('id debe ser un número entero')],
@@ -67,6 +78,7 @@ app.post(
           id_rese_a,
           imagen,
           calificacion,
+          activo,
         } = req.body;
         const nuevoTour = await prisma.provedor_tour.create({
             data: {
@@ -79,6 +91,7 @@ app.post(
               id_rese_a,
               imagen,
               calificacion,
+              activo,
             }
         });
         res.status(201).json(nuevoTour);
@@ -101,6 +114,7 @@ app.put(
     body('id_rese_a').optional().isInt(),
     body('imagen').optional().isString(),
     body('calificacion').optional().isString().isLength({ max: 100 }),
+    body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
   ],
   validateRequest,
   async (req, res) => {
@@ -116,6 +130,7 @@ app.put(
           id_rese_a,
           imagen,
           calificacion,
+          activo,
         } = req.body;
         const tourActualizado = await prisma.provedor_tour.update({
             where: { id_provedor: Number(id) },
@@ -129,6 +144,7 @@ app.put(
               id_rese_a,
               imagen,
               calificacion,
+              activo,
             }
         });
         res.status(200).json(tourActualizado);

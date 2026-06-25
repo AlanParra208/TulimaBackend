@@ -22,6 +22,17 @@ app.get('/destinos', async (req, res)=>{
    }
 });
 
+app.get('/destinos/admin/todos', async (req, res) => {
+  try {
+    const destinos = await prisma.destino_turistico.findMany({
+      include: { municipio: true, categoria: true }
+    });
+    res.status(200).json(destinos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener destinos' });
+  }
+});
+
 app.get(
   '/destinos/:id',
   [param('id').isInt().withMessage('id debe ser un número entero')],
@@ -82,6 +93,7 @@ app.post(
           id_categoria,
           imagen,
           calificacion,
+          activo,
         } = req.body;
         const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
 
@@ -99,6 +111,7 @@ app.post(
               id_categoria,
               imagen,
               calificacion,
+              activo,
             }
         });
         res.status(201).json(nuevoDestino);
@@ -124,6 +137,7 @@ app.put(
     body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('calificacion').optional().isString().isLength({ max: 100 }),
+    body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
   ],
   validateRequest,
   async (req, res) => {
@@ -142,6 +156,7 @@ app.put(
           id_categoria,
           imagen,
           calificacion,
+          activo,
         } = req.body;
 
         const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
@@ -161,6 +176,7 @@ app.put(
               id_categoria,
               imagen,
               calificacion,
+              activo,
             }
         });
         res.status(200).json(destinoActualizado);
