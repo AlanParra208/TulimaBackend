@@ -22,6 +22,17 @@ app.get('/restaurantes', async (req, res)=>{
    }
 });
 
+app.get('/restaurantes/admin/todos', async (req, res) => {
+  try {
+    const restaurantes = await prisma.restaurante.findMany({
+      include: { municipio: true, categoria: true }
+    });
+    res.status(200).json(restaurantes);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener restaurantes' });
+  }
+});
+
 app.get(
   '/restaurantes/:id',
   [param('id').isInt().withMessage('id debe ser un número entero')],
@@ -81,6 +92,7 @@ app.post(
           calificacion,
           horarioAbierto,
           horarioCerrado,
+          activo,
         } = req.body;
         const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
 
@@ -100,6 +112,7 @@ app.post(
               id_rese_a,
               imagen,
               calificacion,
+              activo,
               horarioAbierto: formatearHora(horarioAbierto),
               horarioCerrado: formatearHora(horarioCerrado),
             }
@@ -131,6 +144,7 @@ app.put(
     body('calificacion').optional().isString().isLength({ max: 100 }),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
+    body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
   ],
   validateRequest,
   async (req, res) => {
@@ -153,6 +167,7 @@ app.put(
           calificacion,
           horarioAbierto,
           horarioCerrado,
+          activo,
         } = req.body;
         const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
 
@@ -173,6 +188,7 @@ app.put(
               id_rese_a,
               imagen,
               calificacion,
+              activo,
               horarioAbierto: formatearHora(horarioAbierto),
               horarioCerrado: formatearHora(horarioCerrado),
             }
