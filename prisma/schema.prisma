@@ -1,11 +1,11 @@
 generator client {
   provider = "prisma-client-js"
-  output = "../node_modules/.prisma/client"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "mysql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model categoria {
@@ -13,7 +13,7 @@ model categoria {
   nombre            String              @db.VarChar(50)
   destino_turistico destino_turistico[]
   evento            evento[]
-  hotel             hotel[] @relation("categoria_relacion")
+  hotel             hotel[]             @relation("categoria_relacion")
   restaurante       restaurante[]
 }
 
@@ -30,30 +30,30 @@ model destino_turistico {
   id_categoria   Int
   imagen         String?    @db.Text
   activo         Boolean    @default(true)
-  favoritos      Favorito[]
   categoria      categoria  @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "destino_turistico_categoria_FK")
   municipio      municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "destino_turistico_municipio_FK")
   evento         evento[]
+  favoritos      Favorito[]
 
   @@index([id_categoria], map: "destino_turistico_categoria_FK")
   @@index([id_municipio], map: "destino_turistico_municipio_FK")
 }
 
 model evento {
-  id_evento     Int      @id @default(autoincrement())
-  id_destino    Int
-  nombre_Evento String   @db.VarChar(50)
-  numero_Calle  Int
-  nombre_Calle  String   @db.VarChar(50)
-  codigoPostal  Int
-  id_municipio  Int
-  tipoEvento    String?  @db.VarChar(50)
-  fechaInicio   DateTime @db.DateTime(0)
-  disponibilidad String?  @db.VarChar(100)
-  fechaTermino  DateTime @db.DateTime(0)
-  id_categoria  Int
-  activo        Boolean  @default(true)
-  categoria     categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "evento_categoria_FK")
+  id_evento         Int               @id @default(autoincrement())
+  id_destino        Int
+  nombre_Evento     String            @db.VarChar(50)
+  numero_Calle      Int
+  nombre_Calle      String            @db.VarChar(50)
+  codigoPostal      Int
+  id_municipio      Int
+  tipoEvento        String?           @db.VarChar(50)
+  fechaInicio       DateTime          @db.DateTime(0)
+  disponibilidad    String?           @db.VarChar(100)
+  fechaTermino      DateTime          @db.DateTime(0)
+  id_categoria      Int
+  activo            Boolean           @default(true)
+  categoria         categoria         @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "evento_categoria_FK")
   destino_turistico destino_turistico @relation(fields: [id_destino], references: [id_destino], onUpdate: Restrict, map: "evento_destino_turistico_FK")
 
   @@index([id_categoria], map: "evento_categoria_FK")
@@ -61,34 +61,34 @@ model evento {
 }
 
 model hotel {
-  id_hotel       Int        @id @default(autoincrement())
-  nombre_hotel   String     @db.VarChar(25)
-  numero_Calle   Int
-  nombre_Calle   String     @db.VarChar(50)
-  codigoPostal   Int
-  id_municipio   Int
-  disponibilidad Int?
-  categoria      String?    @db.VarChar(20)
-  telefono       BigInt?
-  email          String?    @db.VarChar(50)
-  estadoConvenio Boolean
-  id_categoria   Int
-  imagen         String?    @db.Text
-  descripcion    String?    @db.VarChar(255)
-  activo         Boolean    @default(true)
-  favoritos      Favorito[]
+  id_hotel           Int        @id @default(autoincrement())
+  nombre_hotel       String     @db.VarChar(25)
+  numero_Calle       Int
+  nombre_Calle       String     @db.VarChar(50)
+  codigoPostal       Int
+  id_municipio       Int
+  disponibilidad     Int?
+  categoria          String?    @db.VarChar(20)
+  telefono           BigInt?
+  email              String?    @db.VarChar(50)
+  estadoConvenio     Boolean
+  id_categoria       Int
+  imagen             String?    @db.Text
+  descripcion        String?    @db.VarChar(255)
+  activo             Boolean    @default(true)
+  favoritos          Favorito[]
   categoria_relacion categoria  @relation("categoria_relacion", fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "hotel_categoria_FK")
-  municipio      municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
+  municipio          municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
 
   @@index([id_categoria], map: "hotel_categoria_FK")
   @@index([id_municipio], map: "hotel_municipio_FK")
 }
 
 model municipio {
-  id_municipio      Int @id @default(autoincrement())
-  nombre            String @db.VarChar(25)
-  url_imagen        String? @db.Text
-  descripcion       String? @db.Text
+  id_municipio      Int                 @id @default(autoincrement())
+  nombre            String              @db.VarChar(25)
+  url_imagen        String?             @db.Text
+  descripcion       String?             @db.Text
   destino_turistico destino_turistico[]
   hotel             hotel[]
   provedor_tour     provedor_tour[]
@@ -157,32 +157,37 @@ model usuario {
   telefono        String?       @db.VarChar(255)
   genero          String?       @db.VarChar(50)
   edad            Int?
-  rol             String        @db.VarChar(6)
+  rol             String        @db.VarChar(15)
   correo          String?       @unique @db.VarChar(100)
   googleId        String?       @unique @db.VarChar(255)
-  mfaSecret       String?       @db.VarChar(255)
-  mfaEnabled      Boolean       @default(false)
   activo          Boolean       @default(true)
-  suscripcion     suscripcion[]
+  mfaEnabled      Boolean       @default(false)
+  mfaSecret       String?       @db.VarChar(255)
+  rfc             String?       @db.VarChar(13)
   favoritos       Favorito[]
+  suscripcion     suscripcion[]
 }
 
 model Favorito {
-  id_favorito  Int      @id @default(autoincrement())
-  id_usuario   Int
-  usuario      usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-  id_hotel     Int?
-  hotel        hotel?   @relation(fields: [id_hotel], references: [id_hotel], onDelete: Cascade)
-  id_restaurante Int?
-  restaurante  restaurante? @relation(fields: [id_restaurante], references: [id_restaurante], onDelete: Cascade)
-  id_destino   Int?
+  id_favorito       Int                @id @default(autoincrement())
+  id_usuario        Int
+  id_hotel          Int?
+  id_restaurante    Int?
+  id_destino        Int?
+  id_provedor_tour  Int?
   destino_turistico destino_turistico? @relation(fields: [id_destino], references: [id_destino], onDelete: Cascade)
-  id_provedor_tour Int?
-  provedor_tour  provedor_tour? @relation(fields: [id_provedor_tour], references: [id_provedor], onDelete: Cascade)
+  hotel             hotel?             @relation(fields: [id_hotel], references: [id_hotel], onDelete: Cascade)
+  provedor_tour     provedor_tour?     @relation(fields: [id_provedor_tour], references: [id_provedor], onDelete: Cascade)
+  restaurante       restaurante?       @relation(fields: [id_restaurante], references: [id_restaurante], onDelete: Cascade)
+  usuario           usuario            @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 
   @@unique([id_usuario, id_hotel])
   @@unique([id_usuario, id_restaurante])
   @@unique([id_usuario, id_destino])
   @@unique([id_usuario, id_provedor_tour])
+  @@index([id_destino], map: "favoritos_id_destino_fkey")
+  @@index([id_hotel], map: "favoritos_id_hotel_fkey")
+  @@index([id_provedor_tour], map: "favoritos_id_provedor_tour_fkey")
+  @@index([id_restaurante], map: "favoritos_id_restaurante_fkey")
   @@map("favoritos")
 }
