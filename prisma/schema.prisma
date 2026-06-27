@@ -179,6 +179,7 @@ model usuario {
   mfaEnabled        Boolean             @default(false)
   mfaSecret         String?             @db.VarChar(255)
   rfc               String?             @db.VarChar(13)
+  tipo_servicio     String?             @db.VarChar(20)
   destino_turistico destino_turistico[]
   evento            evento[]
   favoritos         Favorito[]

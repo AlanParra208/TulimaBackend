@@ -69,6 +69,7 @@ app.get(
 // POST — crear restaurante
 app.post(
   '/restaurantes',
+  verificarToken,
   [
     body('nombre').trim().notEmpty().withMessage('nombre es obligatorio').isLength({ max: 50 }),
     body('numero_Calle').isInt().withMessage('numero_Calle debe ser un número entero'),

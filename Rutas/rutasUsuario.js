@@ -124,7 +124,8 @@ app.get('/auth/me', verificarToken, async (req, res) => {
             primerNombre: usuario.primerNombre,
             apellidoPaterno: usuario.apellidoPaterno,
             nombreUsuario: usuario.nombreUsuario,
-            rol: usuario.rol
+            rol: usuario.rol,
+            tipo_servicio: usuario.tipo_servicio
         });
 
     } catch (error) {

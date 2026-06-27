@@ -70,6 +70,7 @@ app.get(
 // POST — crear hotel
 app.post(
   '/hoteles',
+  verificarToken,
   [
     body('nombre_hotel').trim().notEmpty().withMessage('nombre_hotel es obligatorio').isLength({ max: 25 }),
     body('numero_Calle').isInt().withMessage('numero_Calle debe ser un número entero'),
