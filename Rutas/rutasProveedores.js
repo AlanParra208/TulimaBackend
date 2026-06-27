@@ -77,15 +77,13 @@ app.post(
   '/login-proveedor',
   [
     body('email').trim().notEmpty().withMessage('El correo es obligatorio').isEmail(),
-    body('rfc').trim().notEmpty().withMessage('El RFC es obligatorio'),
     body('contraseña').notEmpty().withMessage('La contraseña es obligatoria'),
   ],
   validateRequest,
   async (req, res) => {
-    const { email, rfc, contraseña } = req.body;
+    const { email, contraseña } = req.body;
 
     try {
-      // Buscar proveedor por correo y que esté activo
       const proveedor = await prisma.usuario.findFirst({
         where: {
           correo: email,
@@ -98,12 +96,6 @@ app.post(
         return res.status(401).json({ error: 'Credenciales inválidas o cuenta inactiva.' });
       }
 
-      // Verificar RFC
-      if (!proveedor.rfc || proveedor.rfc.toUpperCase() !== rfc.trim().toUpperCase()) {
-        return res.status(401).json({ error: 'Credenciales inválidas o cuenta inactiva.' });
-      }
-
-      // Verificar contraseña
       if (!proveedor.contrase_a) {
         return res.status(401).json({ error: 'Credenciales inválidas o cuenta inactiva.' });
       }
