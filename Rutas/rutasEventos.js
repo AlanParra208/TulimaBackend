@@ -1,9 +1,10 @@
 const express = require('express');
 const app = express();
 const { body, param, validateRequest } = require('../Middlewares/validator');
+const { verificarToken } = require('../Middlewares/middleware'); // <-- FALTABA
 const prisma = require('../config.db');
 
-// Obtener todos los eventos activos (para turistas)
+// GET público — para turistas
 app.get('/eventos', async (req, res) => {
   try {
     const eventos = await prisma.evento.findMany({
@@ -22,7 +23,26 @@ app.get('/eventos', async (req, res) => {
   }
 });
 
-// Obtener todos (incluyendo inactivos) — para admin
+// GET solo los del proveedor autenticado
+app.get('/eventos/mios', verificarToken, async (req, res) => {
+  try {
+    const eventos = await prisma.evento.findMany({
+      where: { id_usuario: req.usuarioId },
+      include: {
+        categoria: true,
+        destino_turistico: {
+          include: { municipio: true }
+        }
+      }
+    });
+    res.status(200).json(eventos);
+  } catch (error) {
+    console.error('Error al consultar eventos del proveedor:', error);
+    res.status(500).json({ error: 'Error al obtener tus eventos' });
+  }
+});
+
+// GET todos — para admin
 app.get('/eventos/admin/todos', async (req, res) => {
   try {
     const eventos = await prisma.evento.findMany({
@@ -39,7 +59,7 @@ app.get('/eventos/admin/todos', async (req, res) => {
   }
 });
 
-// Obtener un evento por ID
+// GET por ID
 app.get(
   '/eventos/:id',
   [param('id').isInt().withMessage('id debe ser un número entero')],
@@ -64,7 +84,7 @@ app.get(
   }
 );
 
-// Crear evento (proveedores/admin)
+// POST — crear evento
 app.post(
   '/eventos',
   [
@@ -102,7 +122,8 @@ app.post(
           fechaTermino: new Date(fechaTermino),
           disponibilidad,
           id_categoria: Number(id_categoria),
-          activo: true
+          id_usuario: req.usuarioId, // <-- FALTABA
+          activo: false,             // <-- pendiente de aprobación como los demás
         }
       });
       res.status(201).json(nuevoEvento);
@@ -113,7 +134,7 @@ app.post(
   }
 );
 
-// Actualizar evento
+// PUT — actualizar evento
 app.put(
   '/eventos/:id',
   [
@@ -161,7 +182,7 @@ app.put(
   }
 );
 
-// Desactivar evento (soft delete)
+// DELETE — borrado lógico
 app.delete(
   '/eventos/:id',
   [param('id').isInt().withMessage('id debe ser un número entero')],
