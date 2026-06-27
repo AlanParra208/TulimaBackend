@@ -69,6 +69,7 @@ app.get(
 // POST — crear tour
 app.post(
   '/tours',
+  verificarToken,
   [
     body('nombre').trim().notEmpty().withMessage('nombre es obligatorio').isLength({ max: 30 }),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
