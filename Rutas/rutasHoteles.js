@@ -4,28 +4,40 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
 const { body, param, validateRequest } = require('../Middlewares/validator');
-
+const { verificarToken } = require('../Middlewares/middleware'); // <-- FALTABA
 const prisma = require('../config.db');
 
-app.get('/hoteles', async (req, res)=>{
-    try{
-        const hoteles = await prisma.hotel.findMany({
-            where: { activo: true },
-            include: {
-                municipio: true
-            }
-        });
-        res.status(200).json(hoteles);
-   }catch(error){
-    console.error('Error al consultar hoteles:', error);
+// GET público — para turistas
+app.get('/hoteles', async (req, res) => {
+  try {
+    const hoteles = await prisma.hotel.findMany({
+      where: { activo: true },
+      include: { municipio: true, categoria_relacion: true }
+    });
+    res.status(200).json(hoteles);
+  } catch (error) {
     res.status(500).json({ error: 'Error al obtener hoteles' });
-   }
+  }
 });
 
+// GET solo los del proveedor autenticado
+app.get('/hoteles/mios', verificarToken, async (req, res) => {
+  try {
+    const hoteles = await prisma.hotel.findMany({
+      where: { id_usuario: req.usuarioId },
+      include: { municipio: true, categoria_relacion: true }
+    });
+    res.status(200).json(hoteles);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener tus hoteles' });
+  }
+});
+
+// GET todos — para admin
 app.get('/hoteles/admin/todos', async (req, res) => {
   try {
     const hoteles = await prisma.hotel.findMany({
-      include: { municipio: true, categoria: true }
+      include: { municipio: true, categoria_relacion: true } // <-- CORREGIDO
     });
     res.status(200).json(hoteles);
   } catch (error) {
@@ -34,30 +46,28 @@ app.get('/hoteles/admin/todos', async (req, res) => {
   }
 });
 
+// GET por ID
 app.get(
-    '/hoteles/:id',
-    [param('id').isInt().withMessage('id debe ser un número entero')],
-    validateRequest,
-    async (req, res) => {
-      const { id } = req.params;
-      try {
-          const hotel = await prisma.hotel.findFirst({
-              where: { 
-                  id_hotel: Number(id),
-                  activo: true 
-              },
-              include: { municipio: true }
-          });
-          
-          if (!hotel) return res.status(404).json({ error: 'Hotel no encontrado o inactivo' });
-          
-          res.status(200).json(hotel);
-      } catch (error) {
-          console.error('Error al consultar el hotel:', error);
-          res.status(500).json({ error: 'Error al obtener el hotel' });
-      }
-  });
+  '/hoteles/:id',
+  [param('id').isInt().withMessage('id debe ser un número entero')],
+  validateRequest,
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      const hotel = await prisma.hotel.findFirst({
+        where: { id_hotel: Number(id), activo: true },
+        include: { municipio: true }
+      });
+      if (!hotel) return res.status(404).json({ error: 'Hotel no encontrado o inactivo' });
+      res.status(200).json(hotel);
+    } catch (error) {
+      console.error('Error al consultar el hotel:', error);
+      res.status(500).json({ error: 'Error al obtener el hotel' });
+    }
+  }
+);
 
+// POST — crear hotel
 app.post(
   '/hoteles',
   [
@@ -78,48 +88,31 @@ app.post(
   validateRequest,
   async (req, res) => {
     try {
-        const {
-          nombre_hotel,
-          numero_Calle,
-          nombre_Calle,
-          codigoPostal,
-          id_municipio,
-          disponibilidad,
-          categoria,
-          telefono,
-          email,
-          estadoConvenio,
-          id_categoria,
-          imagen,
-          descripcion,
-          activo,
-        } = req.body;
+      const {
+        nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
+        id_municipio, disponibilidad, categoria, telefono, email,
+        estadoConvenio, id_categoria, imagen, descripcion,
+      } = req.body;
 
-        const nuevoHotel = await prisma.hotel.create({
-            data: {
-              nombre_hotel,
-              numero_Calle,
-              nombre_Calle,
-              codigoPostal,
-              id_municipio,
-              disponibilidad,
-              categoria,
-              telefono,
-              email,
-              estadoConvenio,
-              id_categoria,
-              imagen,
-              descripcion,
-              activo,
-            }
-        });
-        res.status(201).json(nuevoHotel);
+      const nuevoHotel = await prisma.hotel.create({
+        data: {
+          nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
+          id_municipio, disponibilidad, categoria, telefono, email,
+          id_usuario: req.usuarioId,
+          estadoConvenio: true,
+          id_categoria, imagen, descripcion,
+          activo: false,
+        }
+      });
+      res.status(201).json(nuevoHotel);
     } catch (error) {
-        console.error('Error al crear hotel:', error);
-        res.status(500).json({ error: 'Error al crear el hotel' });
+      console.error('Error al crear hotel:', error);
+      res.status(500).json({ error: 'Error al crear el hotel' });
     }
-});
+  }
+);
 
+// PUT — actualizar hotel
 app.put(
   '/hoteles/:id',
   [
@@ -137,70 +130,52 @@ app.put(
     body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('descripcion').optional().isString().isLength({ max: 255 }),
-    body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
+    body('activo').optional().isBoolean(),
   ],
   validateRequest,
   async (req, res) => {
     const { id } = req.params;
     try {
-        const {
-          nombre_hotel,
-          numero_Calle,
-          nombre_Calle,
-          codigoPostal,
-          id_municipio,
-          disponibilidad,
-          categoria,
-          telefono,
-          email,
-          estadoConvenio,
-          id_categoria,
-          imagen,
-          descripcion,
-          activo,
-        } = req.body;
+      const {
+        nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
+        id_municipio, disponibilidad, categoria, telefono, email,
+        estadoConvenio, id_categoria, imagen, descripcion, activo,
+      } = req.body;
 
-        const hotelActualizado = await prisma.hotel.update({
-            where: { id_hotel: Number(id) },
-            data: {
-              nombre_hotel,
-              numero_Calle,
-              nombre_Calle,
-              codigoPostal,
-              id_municipio,
-              disponibilidad,
-              categoria,
-              telefono,
-              email,
-              estadoConvenio,
-              id_categoria,
-              imagen,
-              descripcion,
-              activo,
-            }
-        });
-        res.status(200).json(hotelActualizado);
+      const hotelActualizado = await prisma.hotel.update({
+        where: { id_hotel: Number(id) },
+        data: {
+          nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
+          id_municipio, disponibilidad, categoria, telefono, email,
+          estadoConvenio, id_categoria, imagen, descripcion, activo,
+        }
+      });
+      res.status(200).json(hotelActualizado);
     } catch (error) {
-        console.error('Error al actualizar hotel:', error);
-        res.status(500).json({ error: 'Error al actualizar el hotel' });
+      console.error('Error al actualizar hotel:', error);
+      res.status(500).json({ error: 'Error al actualizar el hotel' });
     }
-});
+  }
+);
 
-app.delete('/hoteles/:id',
-    [param('id').isInt().withMessage('id debe ser un número entero')], 
-    validateRequest,
-    async (req, res) => {
+// DELETE — borrado lógico
+app.delete(
+  '/hoteles/:id',
+  [param('id').isInt().withMessage('id debe ser un número entero')],
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
-    try{
-    await prisma.hotel.update({
-        where: { id_hotel: Number(req.params.id) },
+    try {
+      await prisma.hotel.update({
+        where: { id_hotel: Number(id) },
         data: { activo: false }
-    });
-    res.status(200).json({ message: 'Hotel desactivado correctamente' });
-    }catch(error){
-        console.error('Error al desactivar hotel:', error);
-        res.status(500).json({ error: 'Error al desactivar el hotel o registro no encontrado' });
+      });
+      res.status(200).json({ message: 'Hotel desactivado correctamente' });
+    } catch (error) {
+      console.error('Error al desactivar hotel:', error);
+      res.status(500).json({ error: 'Error al desactivar el hotel o registro no encontrado' });
     }
-});
+  }
+);
 
 module.exports = app;

@@ -4,24 +4,36 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
 const { body, param, validateRequest } = require('../Middlewares/validator');
-
+const { verificarToken } = require('../Middlewares/middleware'); // <-- FALTABA
 const prisma = require('../config.db');
 
-app.get('/restaurantes', async (req, res)=>{
-    try{
-        const restaurantes = await prisma.restaurante.findMany({
-            where: { activo: true },
-            include: {
-                municipio: true
-            }
-        });
-        res.status(200).json(restaurantes);
-   }catch(error){
-    console.error('Error al consultar restaurantes:', error);
+// GET público — para turistas
+app.get('/restaurantes', async (req, res) => {
+  try {
+    const restaurantes = await prisma.restaurante.findMany({
+      where: { activo: true },
+      include: { municipio: true, categoria: true }
+    });
+    res.status(200).json(restaurantes);
+  } catch (error) {
     res.status(500).json({ error: 'Error al obtener restaurantes' });
-   }
+  }
 });
 
+// GET solo los del proveedor autenticado
+app.get('/restaurantes/mios', verificarToken, async (req, res) => {
+  try {
+    const restaurantes = await prisma.restaurante.findMany({
+      where: { id_usuario: req.usuarioId },
+      include: { municipio: true, categoria: true }
+    });
+    res.status(200).json(restaurantes);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener tus restaurantes' });
+  }
+});
+
+// GET todos — para admin
 app.get('/restaurantes/admin/todos', async (req, res) => {
   try {
     const restaurantes = await prisma.restaurante.findMany({
@@ -33,6 +45,7 @@ app.get('/restaurantes/admin/todos', async (req, res) => {
   }
 });
 
+// GET por ID
 app.get(
   '/restaurantes/:id',
   [param('id').isInt().withMessage('id debe ser un número entero')],
@@ -40,18 +53,20 @@ app.get(
   async (req, res) => {
     const { id } = req.params;
     try {
-        const restaurante = await prisma.restaurante.findFirst({
-            where: { id_restaurante: Number(id), activo: true },
-            include: { municipio: true }
-        });
-        if (!restaurante) return res.status(404).json({ error: 'Restaurante no encontrado' });
-        res.status(200).json(restaurante);
+      const restaurante = await prisma.restaurante.findFirst({
+        where: { id_restaurante: Number(id), activo: true },
+        include: { municipio: true }
+      });
+      if (!restaurante) return res.status(404).json({ error: 'Restaurante no encontrado' });
+      res.status(200).json(restaurante);
     } catch (error) {
-        console.error('Error al consultar el restaurante:', error);
-        res.status(500).json({ error: 'Error al obtener el restaurante' });
+      console.error('Error al consultar el restaurante:', error);
+      res.status(500).json({ error: 'Error al obtener el restaurante' });
     }
-});
+  }
+);
 
+// POST — crear restaurante
 app.post(
   '/restaurantes',
   [
@@ -73,51 +88,35 @@ app.post(
   validateRequest,
   async (req, res) => {
     try {
-        const {
-          nombre,
-          tipo,
-          numero_Calle,
-          nombre_Calle,
-          codigoPostal,
-          id_municipio,
-          disponibilidad,
-          telefono,
-          email,
-          estadoConvenio,
-          id_categoria,
-          imagen,
-          horarioAbierto,
-          horarioCerrado,
-          activo,
-        } = req.body;
-        const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
+      const {
+        nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
+        id_municipio, disponibilidad, telefono, email,
+        id_categoria, imagen, horarioAbierto, horarioCerrado,
+      } = req.body;
 
-        const nuevoRestaurante = await prisma.restaurante.create({
-            data: {
-              nombre,
-              tipo,
-              numero_Calle,
-              nombre_Calle,
-              codigoPostal,
-              id_municipio,
-              disponibilidad,
-              telefono,
-              email,
-              estadoConvenio,
-              id_categoria,
-              imagen,
-              activo,
-              horarioAbierto: formatearHora(horarioAbierto),
-              horarioCerrado: formatearHora(horarioCerrado),
-            }
-        });
-        res.status(201).json(nuevoRestaurante);
+      const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
+
+      const nuevoRestaurante = await prisma.restaurante.create({
+        data: {
+          nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
+          id_municipio, disponibilidad, telefono, email,
+          id_usuario: req.usuarioId,
+          estadoConvenio: true,
+          id_categoria, imagen,
+          activo: false,
+          horarioAbierto: formatearHora(horarioAbierto),
+          horarioCerrado: formatearHora(horarioCerrado),
+        }
+      });
+      res.status(201).json(nuevoRestaurante);
     } catch (error) {
-        console.error('Error al crear restaurante:', error);
-        res.status(500).json({ error: 'Error al crear el restaurante' });
+      console.error('Error al crear restaurante:', error);
+      res.status(500).json({ error: 'Error al crear el restaurante' });
     }
-});
+  }
+);
 
+// PUT — actualizar restaurante
 app.put(
   '/restaurantes/:id',
   [
@@ -136,76 +135,56 @@ app.put(
     body('imagen').optional().isString(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
-    body('activo').optional().isBoolean().withMessage('activo debe ser true o false'),
+    body('activo').optional().isBoolean(),
   ],
   validateRequest,
   async (req, res) => {
     const { id } = req.params;
     try {
-        const {
-          nombre,
-          tipo,
-          numero_Calle,
-          nombre_Calle,
-          codigoPostal,
-          id_municipio,
-          disponibilidad,
-          telefono,
-          email,
-          estadoConvenio,
-          id_categoria,
-          imagen,
-          horarioAbierto,
-          horarioCerrado,
-          activo,
-        } = req.body;
-        const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
+      const {
+        nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
+        id_municipio, disponibilidad, telefono, email, estadoConvenio,
+        id_categoria, imagen, horarioAbierto, horarioCerrado, activo,
+      } = req.body;
 
-        const restauranteActualizado = await prisma.restaurante.update({
-            where: { id_restaurante: Number(id)},
-            data: {
-              nombre,
-              tipo,
-              numero_Calle,
-              nombre_Calle,
-              codigoPostal,
-              id_municipio,
-              disponibilidad,
-              telefono,
-              email,
-              estadoConvenio,
-              id_categoria,
-              imagen,
-              activo,
-              horarioAbierto: formatearHora(horarioAbierto),
-              horarioCerrado: formatearHora(horarioCerrado),
-            }
-        });
-        res.status(200).json(restauranteActualizado);
+      const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
+
+      const restauranteActualizado = await prisma.restaurante.update({
+        where: { id_restaurante: Number(id) },
+        data: {
+          nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
+          id_municipio, disponibilidad, telefono, email, estadoConvenio,
+          id_categoria, imagen, activo,
+          horarioAbierto: formatearHora(horarioAbierto),
+          horarioCerrado: formatearHora(horarioCerrado),
+        }
+      });
+      res.status(200).json(restauranteActualizado);
     } catch (error) {
-        console.error('Error al actualizar restaurante:', error);
-        res.status(500).json({ error: 'Error al actualizar el restaurante' });
+      console.error('Error al actualizar restaurante:', error);
+      res.status(500).json({ error: 'Error al actualizar el restaurante' });
     }
-});
+  }
+);
 
-//borrado logico
-
-app.delete('/restaurantes/:id'
-    [param('id').isInt().withMessage('id debe ser un número entero')], 
-    validateRequest,
-    async (req, res) => {
+// DELETE — borrado lógico
+app.delete(
+  '/restaurantes/:id',
+  [param('id').isInt().withMessage('id debe ser un número entero')], // <-- FALTABA LA COMA
+  validateRequest,
+  async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.restaurante.update({
-            where: { id_restaurante: Number(id)},
-            data: { activo: false }
-        });
-        res.status(200).json({ message: 'Restaurante desactivado correctamente' });
+      await prisma.restaurante.update({
+        where: { id_restaurante: Number(id) },
+        data: { activo: false }
+      });
+      res.status(200).json({ message: 'Restaurante desactivado correctamente' });
     } catch (error) {
-        console.error('Error al eliminar restaurante:', error);
-        res.status(500).json({ error: 'Error al eliminar el restaurante' });
+      console.error('Error al eliminar restaurante:', error);
+      res.status(500).json({ error: 'Error al eliminar el restaurante' });
     }
-});
-
+  }
+);
 
 module.exports = app;
