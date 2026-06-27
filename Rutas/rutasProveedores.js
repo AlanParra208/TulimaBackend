@@ -18,6 +18,7 @@ app.post(
     body('correoCorporativo').trim().notEmpty().withMessage('El correo corporativo es obligatorio').isEmail().withMessage('Correo inválido').isLength({ max: 100 }),
     body('rfc').trim().notEmpty().withMessage('El RFC es obligatorio').isLength({ min: 12, max: 13 }).withMessage('El RFC debe tener 12 o 13 caracteres'),
     body('contraseña').notEmpty().withMessage('La contraseña es obligatoria').isLength({ min: 6, max: 100 }),
+    body('tipo_servicio').trim().notEmpty().withMessage('El tipo de servicio es obligatorio').isIn(['hoteles', 'restaurantes', 'tours', 'destinos', 'eventos']).withMessage('Tipo de servicio inválido'),
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('genero').optional().trim().isLength({ max: 20 }),
     body('edad').optional().toInt().isInt({ min: 0, max: 120 }),
@@ -25,7 +26,7 @@ app.post(
   validateRequest,
   async (req, res) => {
     try {
-      const { primerNombre, nombreUsuario, correoCorporativo, rfc, contraseña, telefono, genero, edad } = req.body;
+      const { primerNombre, nombreUsuario, correoCorporativo, rfc, contraseña, tipo_servicio, telefono, genero, edad } = req.body;
 
       // Separar nombre en partes
       const partes = primerNombre.trim().split(/\s+/);
@@ -46,12 +47,13 @@ app.post(
           nombreUsuario,
           correo: correoCorporativo,
           rfc: rfcNormalizado,
+          tipo_servicio,
           contrase_a: hashedPassword,
           telefono: telefono ? encryptSymmetric(telefono) : null,
           genero: genero || null,
           edad: edad || null,
           rol: 'proveedor',
-          activo: true,
+          activo: false,
         },
       });
 
