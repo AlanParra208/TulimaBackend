@@ -369,6 +369,35 @@ app.post(
   }
 );
 
+// GET todos los proveedores (admin) — activos e inactivos
+app.get('/usuarios/admin/todos', verificarToken, async (req, res) => {
+    try {
+        if (req.user?.rol !== 'admin') {
+            return res.status(403).json({ error: 'Acceso restringido a administradores.' });
+        }
+        const proveedores = await prisma.usuario.findMany({
+            where: { rol: 'proveedor' },
+            select: {
+                id_usuario: true,
+                primerNombre: true,
+                segundoNombre: true,
+                apellidoPaterno: true,
+                apellidoMaterno: true,
+                nombreUsuario: true,
+                correo: true,
+                rfc: true,
+                edad: true,
+                activo: true,
+            },
+            orderBy: { id_usuario: 'asc' },
+        });
+        res.status(200).json(proveedores);
+    } catch (error) {
+        console.error('Error al obtener proveedores (admin):', error);
+        res.status(500).json({ error: 'Error al obtener los proveedores.' });
+    }
+});
+
 // Llevar todos los usuarios (protegido)
 app.get('/usuarios', verificarToken, async (req, res) => {
     try {
@@ -503,12 +532,21 @@ app.put(
     try {
         const userId = parseInt(req.params.id);
 
-        // Solo el propio usuario puede actualizar su perfil
-        if (req.usuarioId !== userId) {
+        // Solo el propio usuario puede actualizar su perfil, excepto admin
+        if (req.usuarioId !== userId && req.user?.rol !== 'admin') {
             return res.status(403).json({ error: 'No tienes permiso para modificar este perfil.' });
         }
 
         const data = req.body;
+
+        // El admin puede activar/desactivar proveedores
+        if (req.user?.rol === 'admin' && data.activo !== undefined) {
+            await prisma.usuario.update({
+                where: { id_usuario: userId },
+                data: { activo: Boolean(data.activo) }
+            });
+            return res.status(200).json({ message: 'Estado del usuario actualizado.' });
+        }
 
         // Si quiere cambiar contraseña, debe proporcionar la actual
         if (data.contraseña) {
