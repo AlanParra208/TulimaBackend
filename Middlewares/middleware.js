@@ -44,7 +44,8 @@ const verifyCsrfToken = (req, res, next) => {
         '/login', 
         '/login/mfa',
         '/usuarios',
-        '/logout'
+        '/logout',
+        '/registro-proveedor'
     ];
 
     if (rutasIgnoradas.includes(req.path)) {
