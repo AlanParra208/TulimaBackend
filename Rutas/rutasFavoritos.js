@@ -91,10 +91,18 @@ app.get(
             const favoritos = await prisma.favorito.findMany({
                 where: { id_usuario },
                 include: {
-                    hotel: true,
-                    restaurante: true,
-                    destino_turistico: true,
-                    provedor_tour: true,
+                    hotel: {
+                        include: { municipio: true }
+                    },
+                    restaurante: {
+                        include: { municipio: true }
+                    },
+                    destino_turistico: {
+                        include: { municipio: true }
+                    },
+                    provedor_tour: {
+                        include: { municipio: true }
+                    },
                 }
             });
             res.status(200).json(favoritos);
