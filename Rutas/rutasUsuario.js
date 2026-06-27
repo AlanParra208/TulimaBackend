@@ -491,53 +491,72 @@ app.put(
   verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
-    body('primerNombre').optional().trim().isLength({ max: 50 }),
-    body('segundoNombre').optional().trim().isLength({ max: 50 }),
-    body('apellidoPaterno').optional().trim().isLength({ max: 50 }),
-    body('apellidoMaterno').optional().trim().isLength({ max: 50 }),
     body('nombreUsuario').optional().trim().isLength({ max: 15 }),
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('genero').optional().trim().isLength({ max: 20 }),
     body('edad').optional().isInt({ min: 0, max: 120 }),
-    body('rol').optional().isIn(['user', 'admin']).withMessage('rol inválido'),
+    body('contraseñaActual').optional().isLength({ min: 6, max: 100 }),
     body('contraseña').optional().isLength({ min: 6, max: 100 }),
   ],
   validateRequest,
   async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
+
+        // Solo el propio usuario puede actualizar su perfil
+        if (req.usuarioId !== userId) {
+            return res.status(403).json({ error: 'No tienes permiso para modificar este perfil.' });
+        }
+
         const data = req.body;
 
+        // Si quiere cambiar contraseña, debe proporcionar la actual
+        if (data.contraseña) {
+            if (!data.contraseñaActual) {
+                return res.status(400).json({ error: 'Debes ingresar tu contraseña actual para cambiarla.' });
+            }
+
+            const usuarioActual = await prisma.usuario.findUnique({
+                where: { id_usuario: userId }
+            });
+
+            if (!usuarioActual || !usuarioActual.contrase_a) {
+                return res.status(400).json({ error: 'No se puede cambiar la contraseña de una cuenta vinculada con Google.' });
+            }
+
+            const passwordCorrecta = await bcrypt.compare(data.contraseñaActual, usuarioActual.contrase_a);
+            if (!passwordCorrecta) {
+                return res.status(401).json({ error: 'La contraseña actual es incorrecta.' });
+            }
+        }
+
         let updateData = {
-            primerNombre: data.primerNombre,
-            segundoNombre: data.segundoNombre,
-            apellidoPaterno: data.apellidoPaterno,
-            apellidoMaterno: data.apellidoMaterno,
             nombreUsuario: data.nombreUsuario,
             telefono: data.telefono ? encryptSymmetric(data.telefono) : undefined,
             genero: data.genero,
             edad: data.edad,
-            rol: data.rol
         };
 
-        // Si el payload incluye una nueva contraseña, la encriptamos. Si no, no actualizamos ese campo.
         if (data.contraseña) {
             const saltRounds = 10;
             updateData.contrase_a = await bcrypt.hash(data.contraseña, saltRounds);
         }
 
-        const usuarioActualizado = await prisma.usuario.update({
+        // Limpiar campos undefined para no sobreescribir con null
+        Object.keys(updateData).forEach(k => updateData[k] === undefined && delete updateData[k]);
+
+        await prisma.usuario.update({
             where: { id_usuario: userId },
             data: updateData
         });
 
-        res.status(200).json({ message: 'Usuario actualizado exitosamente' });
+        res.status(200).json({ message: 'Perfil actualizado exitosamente.' });
     } catch (error) {
         console.error('Error al actualizar el usuario:', error);
         if (error.code === 'P2025') {
-            return res.status(404).json({ error: 'Usuario no encontrado para actualizar' });
+            return res.status(404).json({ error: 'Usuario no encontrado para actualizar.' });
         }
-        res.status(500).json({ error: 'Error al actualizar el usuario' });
+        res.status(500).json({ error: 'Error al actualizar el usuario.' });
     }
 });
 
