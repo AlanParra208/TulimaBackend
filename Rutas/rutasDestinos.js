@@ -34,8 +34,11 @@ app.get('/destinos/mios', verificarToken, async (req, res) => {
 });
 
 // GET todos — para admin
-app.get('/destinos/admin/todos', async (req, res) => {
+app.get('/destinos/admin/todos', verificarToken, async (req, res) => {
   try {
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso restringido a administradores.' });
+    }
     const destinos = await prisma.destino_turistico.findMany({
       include: { municipio: true, categoria: true }
     });
@@ -69,6 +72,7 @@ app.get(
 // POST — crear destino
 app.post(
   '/destinos',
+  verificarToken,
   [
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
@@ -115,6 +119,7 @@ app.post(
 // PUT — actualizar destino
 app.put(
   '/destinos/:id',
+   verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('id_municipio').optional().isInt(),
@@ -162,6 +167,7 @@ app.put(
 // DELETE — borrado lógico
 app.delete(
   '/destinos/:id',
+   verificarToken,
   [param('id').isInt().withMessage('id debe ser un número entero')],
   validateRequest,
   async (req, res) => {

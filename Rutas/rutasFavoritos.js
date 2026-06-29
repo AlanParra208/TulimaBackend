@@ -7,7 +7,7 @@ const prisma = require('../config.db');
 // Middleware para validar el tipo de favorito
 const validateFavoritoType = (req, res, next) => {
     const { tipo, id } = req.body;
-    const validTypes = ['hotel', 'restaurante', 'destino', 'tour'];
+    const validTypes = ['hotel', 'restaurante', 'destino', 'tour', 'evento'];
     if (!tipo || !validTypes.includes(tipo)) {
         return res.status(400).json({ error: 'El campo "tipo" es inválido. Debe ser uno de: ' + validTypes.join(', ') });
     }
@@ -31,6 +31,7 @@ app.post(
         if (tipo === 'restaurante') data.id_restaurante = parseInt(id);
         if (tipo === 'destino') data.id_destino = parseInt(id);
         if (tipo === 'tour') data.id_provedor_tour = parseInt(id);
+        if (tipo === 'evento') data.id_evento = parseInt(id);
 
         try {
             const nuevoFavorito = await prisma.favorito.create({ data });
@@ -59,6 +60,7 @@ app.delete(
         if (tipo === 'restaurante') where.id_restaurante = parseInt(id);
         if (tipo === 'destino') where.id_destino = parseInt(id);
         if (tipo === 'tour') where.id_provedor_tour = parseInt(id);
+        if (tipo === 'evento') where.id_evento = parseInt(id);
 
         try {
             // Buscamos el favorito para obtener su ID único
@@ -88,23 +90,30 @@ app.get(
         const id_usuario = req.usuarioId;
 
         try {
-            const favoritos = await prisma.favorito.findMany({
-                where: { id_usuario },
-                include: {
-                    hotel: {
-                        include: { municipio: true }
-                    },
-                    restaurante: {
-                        include: { municipio: true }
-                    },
-                    destino_turistico: {
-                        include: { municipio: true }
-                    },
-                    provedor_tour: {
-                        include: { municipio: true }
-                    },
+           const favoritos = await prisma.favorito.findMany({
+    where: { id_usuario },
+    include: {
+        hotel: {
+            include: { municipio: true }
+        },
+        restaurante: {
+            include: { municipio: true }
+        },
+        destino_turistico: {
+            include: { municipio: true }
+        },
+        provedor_tour: {
+            include: { municipio: true }
+        },
+        evento: {
+            include: {
+                destino_turistico: {
+                    include: { municipio: true }
                 }
-            });
+            }
+        },
+    }
+});
             res.status(200).json(favoritos);
         } catch (error) {
             console.error('Error al obtener los favoritos:', error);
