@@ -43,8 +43,11 @@ app.get('/eventos/mios', verificarToken, async (req, res) => {
 });
 
 // GET todos — para admin
-app.get('/eventos/admin/todos', async (req, res) => {
+app.get('/eventos/admin/todos', verificarToken, async (req, res) => {
   try {
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso restringido a administradores.' });
+    }
     const eventos = await prisma.evento.findMany({
       include: {
         categoria: true,
@@ -87,6 +90,7 @@ app.get(
 // POST — crear evento
 app.post(
   '/eventos',
+  verificarToken,
   [
     body('nombre_Evento').trim().notEmpty().withMessage('nombre_Evento es obligatorio').isLength({ max: 50 }),
     body('id_destino').isInt().withMessage('id_destino es obligatorio'),
@@ -137,6 +141,7 @@ app.post(
 // PUT — actualizar evento
 app.put(
   '/eventos/:id',
+   verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('nombre_Evento').optional().trim().isLength({ max: 50 }),
@@ -185,6 +190,7 @@ app.put(
 // DELETE — borrado lógico
 app.delete(
   '/eventos/:id',
+   verificarToken,
   [param('id').isInt().withMessage('id debe ser un número entero')],
   validateRequest,
   async (req, res) => {

@@ -34,8 +34,11 @@ app.get('/restaurantes/mios', verificarToken, async (req, res) => {
 });
 
 // GET todos — para admin
-app.get('/restaurantes/admin/todos', async (req, res) => {
+app.get('/restaurantes/admin/todos', verificarToken, async (req, res) => {
   try {
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso restringido a administradores.' });
+    }
     const restaurantes = await prisma.restaurante.findMany({
       include: { municipio: true, categoria: true }
     });
@@ -120,6 +123,7 @@ app.post(
 // PUT — actualizar restaurante
 app.put(
   '/restaurantes/:id',
+   verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('nombre').optional().trim().isLength({ max: 50 }),
@@ -171,6 +175,7 @@ app.put(
 // DELETE — borrado lógico
 app.delete(
   '/restaurantes/:id',
+   verificarToken,
   [param('id').isInt().withMessage('id debe ser un número entero')], // <-- FALTABA LA COMA
   validateRequest,
   async (req, res) => {

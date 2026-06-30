@@ -34,10 +34,13 @@ app.get('/hoteles/mios', verificarToken, async (req, res) => {
 });
 
 // GET todos — para admin
-app.get('/hoteles/admin/todos', async (req, res) => {
+app.get('/hoteles/admin/todos', verificarToken, async (req, res) => {
   try {
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso restringido a administradores.' });
+    }
     const hoteles = await prisma.hotel.findMany({
-      include: { municipio: true, categoria_relacion: true } // <-- CORREGIDO
+      include: { municipio: true, categoria_relacion: true }
     });
     res.status(200).json(hoteles);
   } catch (error) {
@@ -116,6 +119,7 @@ app.post(
 // PUT — actualizar hotel
 app.put(
   '/hoteles/:id',
+   verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('nombre_hotel').optional().trim().isLength({ max: 25 }),
@@ -162,6 +166,7 @@ app.put(
 // DELETE — borrado lógico
 app.delete(
   '/hoteles/:id',
+   verificarToken,
   [param('id').isInt().withMessage('id debe ser un número entero')],
   validateRequest,
   async (req, res) => {

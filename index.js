@@ -3,7 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const app = express();
 const cookieParser = require('cookie-parser');
-const { verifyCsrfToken, generateCsrfToken } = require('./Middlewares/middleware');
+const { verifyCsrfToken, generateCsrfToken, sanitizeRequest } = require('./Middlewares/middleware');
 
 app.set('trust proxy', 1);
 
@@ -36,6 +36,7 @@ app.use(cors({
 app.use(cookieParser());
 
 app.use(express.json());
+app.use(sanitizeRequest);
 
 // Endpoint para obtener el token CSRF
 app.get('/api/csrf-token', generateCsrfToken);

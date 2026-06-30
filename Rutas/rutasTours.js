@@ -34,8 +34,11 @@ app.get('/tours/mios', verificarToken, async (req, res) => {
 });
 
 // GET todos — para admin
-app.get('/tours/admin/todos', async (req, res) => {
+app.get('/tours/admin/todos', verificarToken, async (req, res) => {
   try {
+    if (req.user?.rol !== 'admin') {
+      return res.status(403).json({ error: 'Acceso restringido a administradores.' });
+    }
     const tours = await prisma.provedor_tour.findMany({
       include: { municipio: true }
     });
@@ -106,6 +109,7 @@ app.post(
 // PUT — actualizar tour
 app.put(
   '/tours/:id',
+   verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('nombre').optional().trim().isLength({ max: 30 }),
@@ -144,6 +148,7 @@ app.put(
 // DELETE — borrado lógico
 app.delete(
   '/tours/:id',
+   verificarToken,
   [param('id').isInt().withMessage('id debe ser un número entero')], // <-- FALTABA LA COMA
   validateRequest,
   async (req, res) => {
