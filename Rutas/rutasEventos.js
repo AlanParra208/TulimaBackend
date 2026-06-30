@@ -9,9 +9,7 @@ app.get('/eventos', async (req, res) => {
   try {
     const eventos = await prisma.evento.findMany({
       where: { activo: true },
-      include: {
-        categoria: true,
-        destino_turistico: {
+      include: {        destino_turistico: {
           include: { municipio: true }
         }
       }
@@ -28,9 +26,7 @@ app.get('/eventos/mios', verificarToken, async (req, res) => {
   try {
     const eventos = await prisma.evento.findMany({
       where: { id_usuario: req.usuarioId },
-      include: {
-        categoria: true,
-        destino_turistico: {
+      include: {        destino_turistico: {
           include: { municipio: true }
         }
       }
@@ -49,9 +45,7 @@ app.get('/eventos/admin/todos', verificarToken, async (req, res) => {
       return res.status(403).json({ error: 'Acceso restringido a administradores.' });
     }
     const eventos = await prisma.evento.findMany({
-      include: {
-        categoria: true,
-        destino_turistico: {
+      include: {        destino_turistico: {
           include: { municipio: true }
         }
       }
@@ -72,9 +66,7 @@ app.get(
     try {
       const evento = await prisma.evento.findFirst({
         where: { id_evento: Number(id), activo: true },
-        include: {
-          categoria: true,
-          destino_turistico: {
+        include: {          destino_turistico: {
             include: { municipio: true }
           }
         }
@@ -101,8 +93,6 @@ app.post(
     body('tipoEvento').optional().isString().isLength({ max: 50 }),
     body('fechaInicio').notEmpty().withMessage('fechaInicio es obligatoria'),
     body('fechaTermino').notEmpty().withMessage('fechaTermino es obligatoria'),
-    body('disponibilidad').optional().isString().isLength({ max: 100 }),
-    body('id_categoria').isInt().withMessage('id_categoria es obligatorio'),
     body('imagen').optional().isString(),
   ],
   validateRequest,
@@ -111,7 +101,7 @@ app.post(
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
         codigoPostal, id_municipio, tipoEvento, fechaInicio,
-        fechaTermino, disponibilidad, id_categoria, imagen
+        fechaTermino, imagen
       } = req.body;
 
       const nuevoEvento = await prisma.evento.create({
@@ -125,8 +115,6 @@ app.post(
           tipoEvento,
           fechaInicio: new Date(fechaInicio),
           fechaTermino: new Date(fechaTermino),
-          disponibilidad,
-          id_categoria: Number(id_categoria),
           imagen,
           id_usuario: req.usuarioId, // <-- FALTABA
           activo: false,             // <-- pendiente de aprobación como los demás
@@ -150,7 +138,6 @@ app.put(
     body('tipoEvento').optional().isString().isLength({ max: 50 }),
     body('fechaInicio').optional(),
     body('fechaTermino').optional(),
-    body('disponibilidad').optional().isString().isLength({ max: 100 }),
     body('activo').optional().isBoolean(),
     body('imagen').optional().isString(),
   ],
@@ -160,8 +147,8 @@ app.put(
     try {
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
-        codigoPostal, id_municipio, tipoEvento, fechaInicio,
-        fechaTermino, disponibilidad, id_categoria, activo, imagen
+        codigoPostal, id_municipio, tipoEvento,
+        fechaInicio, fechaTermino, activo, imagen
       } = req.body;
 
       const data = {};
@@ -174,8 +161,6 @@ app.put(
       if (tipoEvento !== undefined) data.tipoEvento = tipoEvento;
       if (fechaInicio !== undefined) data.fechaInicio = new Date(fechaInicio);
       if (fechaTermino !== undefined) data.fechaTermino = new Date(fechaTermino);
-      if (disponibilidad !== undefined) data.disponibilidad = disponibilidad;
-      if (id_categoria !== undefined) data.id_categoria = Number(id_categoria);
       if (activo !== undefined) data.activo = activo;
       if (imagen !== undefined) data.imagen = imagen;
 

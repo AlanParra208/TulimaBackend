@@ -12,7 +12,7 @@ app.get('/hoteles', async (req, res) => {
   try {
     const hoteles = await prisma.hotel.findMany({
       where: { activo: true },
-      include: { municipio: true, categoria_relacion: true }
+      include: { municipio: true }
     });
     res.status(200).json(hoteles);
   } catch (error) {
@@ -25,7 +25,7 @@ app.get('/hoteles/mios', verificarToken, async (req, res) => {
   try {
     const hoteles = await prisma.hotel.findMany({
       where: { id_usuario: req.usuarioId },
-      include: { municipio: true, categoria_relacion: true }
+      include: { municipio: true }
     });
     res.status(200).json(hoteles);
   } catch (error) {
@@ -40,7 +40,7 @@ app.get('/hoteles/admin/todos', verificarToken, async (req, res) => {
       return res.status(403).json({ error: 'Acceso restringido a administradores.' });
     }
     const hoteles = await prisma.hotel.findMany({
-      include: { municipio: true, categoria_relacion: true }
+      include: { municipio: true }
     });
     res.status(200).json(hoteles);
   } catch (error) {
@@ -80,32 +80,31 @@ app.post(
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
     body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
-    body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
-    body('disponibilidad').optional().isInt(),
-    body('categoria').optional().isString().isLength({ max: 20 }),
-    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('tipo').optional().isString().isLength({ max: 20 }),
+    body('telefono').optional({ nullable: true }).isNumeric().withMessage('El teléfono debe ser numérico'),
     body('email').optional().isEmail().withMessage('email no es válido'),
-    body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('descripcion').optional().isString().isLength({ max: 255 }),
+    body('estrellas').optional().isInt({ min: 1, max: 5 }).withMessage('estrellas debe ser un número entre 1 y 5'),
   ],
   validateRequest,
   async (req, res) => {
     try {
       const {
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
-        id_municipio, disponibilidad, categoria, telefono, email,
-        estadoConvenio, id_categoria, imagen, descripcion,
+        id_municipio, tipo, telefono, email,
+        imagen, descripcion, estrellas,
       } = req.body;
 
       const nuevoHotel = await prisma.hotel.create({
         data: {
           nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
-          id_municipio, disponibilidad, categoria, telefono, email,
+          id_municipio, tipo,
+          telefono: telefono ? BigInt(telefono) : null,
+          email,
           id_usuario: req.usuarioId,
-          estadoConvenio: true,
-          id_categoria, imagen, descripcion,
-          activo: false,
+          imagen, descripcion, estrellas,
+          activo: false, // Por defecto inactivo hasta que un admin lo apruebe
         }
       });
       res.status(201).json(nuevoHotel);
@@ -127,15 +126,13 @@ app.put(
     body('nombre_Calle').optional().trim().isLength({ max: 50 }),
     body('codigoPostal').optional().isInt(),
     body('id_municipio').optional().isInt(),
-    body('id_categoria').optional().isInt(),
-    body('disponibilidad').optional().isInt(),
-    body('categoria').optional().isString().isLength({ max: 20 }),
-    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('tipo').optional().isString().isLength({ max: 20 }),
+    body('telefono').optional({ nullable: true }).isNumeric().withMessage('El teléfono debe ser numérico'),
     body('email').optional().isEmail(),
-    body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('descripcion').optional().isString().isLength({ max: 255 }),
     body('activo').optional().isBoolean(),
+    body('estrellas').optional().isInt({ min: 1, max: 5 }).withMessage('estrellas debe ser un número entre 1 y 5'),
   ],
   validateRequest,
   async (req, res) => {
@@ -143,17 +140,22 @@ app.put(
     try {
       const {
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
-        id_municipio, disponibilidad, categoria, telefono, email,
-        estadoConvenio, id_categoria, imagen, descripcion, activo,
+        id_municipio, tipo, telefono, email,
+        imagen, descripcion, activo, estrellas,
       } = req.body;
+
+      const dataToUpdate = {
+        nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
+        id_municipio, tipo, email, imagen, descripcion, activo, estrellas,
+      };
+
+      if (telefono !== undefined) {
+        dataToUpdate.telefono = telefono ? BigInt(telefono) : null;
+      }
 
       const hotelActualizado = await prisma.hotel.update({
         where: { id_hotel: Number(id) },
-        data: {
-          nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
-          id_municipio, disponibilidad, categoria, telefono, email,
-          estadoConvenio, id_categoria, imagen, descripcion, activo,
-        }
+        data: dataToUpdate
       });
       res.status(200).json(hotelActualizado);
     } catch (error) {

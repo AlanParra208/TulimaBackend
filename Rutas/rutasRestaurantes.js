@@ -12,7 +12,7 @@ app.get('/restaurantes', async (req, res) => {
   try {
     const restaurantes = await prisma.restaurante.findMany({
       where: { activo: true },
-      include: { municipio: true, categoria: true }
+      include: { municipio: true }
     });
     res.status(200).json(restaurantes);
   } catch (error) {
@@ -25,7 +25,7 @@ app.get('/restaurantes/mios', verificarToken, async (req, res) => {
   try {
     const restaurantes = await prisma.restaurante.findMany({
       where: { id_usuario: req.usuarioId },
-      include: { municipio: true, categoria: true }
+      include: { municipio: true }
     });
     res.status(200).json(restaurantes);
   } catch (error) {
@@ -40,7 +40,7 @@ app.get('/restaurantes/admin/todos', verificarToken, async (req, res) => {
       return res.status(403).json({ error: 'Acceso restringido a administradores.' });
     }
     const restaurantes = await prisma.restaurante.findMany({
-      include: { municipio: true, categoria: true }
+      include: { municipio: true }
     });
     res.status(200).json(restaurantes);
   } catch (error) {
@@ -79,12 +79,9 @@ app.post(
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
     body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
-    body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
     body('tipo').optional().isString().isLength({ max: 100 }),
-    body('disponibilidad').optional().isString().isLength({ max: 100 }),
-    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('telefono').optional({ nullable: true }).isNumeric().withMessage('El teléfono debe ser numérico'),
     body('email').optional().isEmail().withMessage('email no es válido'),
-    body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
@@ -94,8 +91,8 @@ app.post(
     try {
       const {
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
-        id_municipio, disponibilidad, telefono, email,
-        id_categoria, imagen, horarioAbierto, horarioCerrado,
+        id_municipio, telefono, email,
+        imagen, horarioAbierto, horarioCerrado,
       } = req.body;
 
       const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
@@ -103,11 +100,12 @@ app.post(
       const nuevoRestaurante = await prisma.restaurante.create({
         data: {
           nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
-          id_municipio, disponibilidad, telefono, email,
+          id_municipio,
+          telefono: telefono ? BigInt(telefono) : null,
+          email,
           id_usuario: req.usuarioId,
-          estadoConvenio: true,
-          id_categoria, imagen,
           activo: false,
+          imagen,
           horarioAbierto: formatearHora(horarioAbierto),
           horarioCerrado: formatearHora(horarioCerrado),
         }
@@ -131,12 +129,9 @@ app.put(
     body('nombre_Calle').optional().trim().isLength({ max: 50 }),
     body('codigoPostal').optional().isInt(),
     body('id_municipio').optional().isInt(),
-    body('id_categoria').optional().isInt(),
     body('tipo').optional().isString().isLength({ max: 100 }),
-    body('disponibilidad').optional().isString().isLength({ max: 100 }),
-    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('telefono').optional({ nullable: true }).isNumeric().withMessage('El teléfono debe ser numérico'),
     body('email').optional().isEmail(),
-    body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
@@ -148,21 +143,26 @@ app.put(
     try {
       const {
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
-        id_municipio, disponibilidad, telefono, email, estadoConvenio,
-        id_categoria, imagen, horarioAbierto, horarioCerrado, activo,
+        id_municipio, telefono, email,
+        imagen, horarioAbierto, horarioCerrado, activo,
       } = req.body;
 
-      const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
+      const formatearHora = (hora) => (hora !== undefined) ? (hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null) : undefined;
+
+      const dataToUpdate = {
+        nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
+        id_municipio, email, imagen, activo,
+        horarioAbierto: formatearHora(horarioAbierto),
+        horarioCerrado: formatearHora(horarioCerrado),
+      };
+
+      if (telefono !== undefined) {
+        dataToUpdate.telefono = telefono ? BigInt(telefono) : null;
+      }
 
       const restauranteActualizado = await prisma.restaurante.update({
         where: { id_restaurante: Number(id) },
-        data: {
-          nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
-          id_municipio, disponibilidad, telefono, email, estadoConvenio,
-          id_categoria, imagen, activo,
-          horarioAbierto: formatearHora(horarioAbierto),
-          horarioCerrado: formatearHora(horarioCerrado),
-        }
+        data: dataToUpdate
       });
       res.status(200).json(restauranteActualizado);
     } catch (error) {

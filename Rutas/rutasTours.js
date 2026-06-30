@@ -79,7 +79,6 @@ app.post(
     body('tipoTour').optional().isString().isLength({ max: 20 }),
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('tipoServicio').optional().isString().isLength({ max: 50 }),
-    body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
   ],
   validateRequest,
@@ -93,7 +92,6 @@ app.post(
         data: {
           nombre, id_municipio, tipoTour, telefono, tipoServicio,
           id_usuario: req.usuarioId,
-          estadoConvenio: true,
           imagen,
           activo: false,
         }
@@ -117,7 +115,6 @@ app.put(
     body('tipoTour').optional().isString().isLength({ max: 20 }),
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('tipoServicio').optional().isString().isLength({ max: 50 }),
-    body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('activo').optional().isBoolean(),
   ],
@@ -127,14 +124,13 @@ app.put(
     try {
       const {
         nombre, id_municipio, tipoTour, telefono, tipoServicio,
-        estadoConvenio, imagen, activo,
+        imagen, activo,
       } = req.body;
 
       const tourActualizado = await prisma.provedor_tour.update({
         where: { id_provedor: Number(id) },
         data: {
-          nombre, id_municipio, tipoTour, telefono, tipoServicio,
-          estadoConvenio, imagen, activo,
+          nombre, id_municipio, tipoTour, telefono, tipoServicio, imagen, activo,
         }
       });
       res.status(200).json(tourActualizado);
