@@ -103,6 +103,7 @@ app.post(
     body('fechaTermino').notEmpty().withMessage('fechaTermino es obligatoria'),
     body('disponibilidad').optional().isString().isLength({ max: 100 }),
     body('id_categoria').isInt().withMessage('id_categoria es obligatorio'),
+    body('imagen').optional().isString(),
   ],
   validateRequest,
   async (req, res) => {
@@ -110,7 +111,7 @@ app.post(
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
         codigoPostal, id_municipio, tipoEvento, fechaInicio,
-        fechaTermino, disponibilidad, id_categoria
+        fechaTermino, disponibilidad, id_categoria, imagen
       } = req.body;
 
       const nuevoEvento = await prisma.evento.create({
@@ -126,6 +127,7 @@ app.post(
           fechaTermino: new Date(fechaTermino),
           disponibilidad,
           id_categoria: Number(id_categoria),
+          imagen,
           id_usuario: req.usuarioId, // <-- FALTABA
           activo: false,             // <-- pendiente de aprobación como los demás
         }
@@ -150,6 +152,7 @@ app.put(
     body('fechaTermino').optional(),
     body('disponibilidad').optional().isString().isLength({ max: 100 }),
     body('activo').optional().isBoolean(),
+    body('imagen').optional().isString(),
   ],
   validateRequest,
   async (req, res) => {
@@ -158,7 +161,7 @@ app.put(
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
         codigoPostal, id_municipio, tipoEvento, fechaInicio,
-        fechaTermino, disponibilidad, id_categoria, activo
+        fechaTermino, disponibilidad, id_categoria, activo, imagen
       } = req.body;
 
       const data = {};
@@ -174,6 +177,7 @@ app.put(
       if (disponibilidad !== undefined) data.disponibilidad = disponibilidad;
       if (id_categoria !== undefined) data.id_categoria = Number(id_categoria);
       if (activo !== undefined) data.activo = activo;
+      if (imagen !== undefined) data.imagen = imagen;
 
       const eventoActualizado = await prisma.evento.update({
         where: { id_evento: Number(id) },
