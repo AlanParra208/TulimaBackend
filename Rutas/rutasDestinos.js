@@ -82,6 +82,8 @@ app.post(
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
     body('imagen').optional().isString(),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -89,7 +91,7 @@ app.post(
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
         codigoPostal, horarioAbierto, horarioCerrado,
-        imagen,
+        imagen, latitud, longitud,
       } = req.body;
 
       const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
@@ -102,6 +104,8 @@ app.post(
           horarioCerrado: formatearHora(horarioCerrado),
           id_usuario: req.usuarioId,
           imagen,
+          latitud: latitud ?? null,
+          longitud: longitud ?? null,
           activo: false,
         }
       });
@@ -128,6 +132,8 @@ app.put(
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
     body('imagen').optional().isString(),
     body('activo').optional().isBoolean(),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -136,7 +142,7 @@ app.put(
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
         codigoPostal, horarioAbierto, horarioCerrado,
-        imagen, activo,
+        imagen, activo, latitud, longitud,
       } = req.body;
 
       const formatearHora = (hora) => (hora !== undefined) ? (hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null) : undefined;
@@ -147,6 +153,7 @@ app.put(
         horarioAbierto: formatearHora(horarioAbierto),
         horarioCerrado: formatearHora(horarioCerrado),
         imagen, activo,
+        latitud, longitud,
       };
 
       const destinoActualizado = await prisma.destino_turistico.update({

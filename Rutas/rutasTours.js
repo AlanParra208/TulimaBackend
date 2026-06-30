@@ -80,12 +80,15 @@ app.post(
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('tipoServicio').optional().isString().isLength({ max: 50 }),
     body('imagen').optional().isString(),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
     try {
       const {
         nombre, id_municipio, tipoTour, telefono, tipoServicio, imagen,
+        latitud, longitud,
       } = req.body;
 
       const nuevoTour = await prisma.provedor_tour.create({
@@ -93,6 +96,8 @@ app.post(
           nombre, id_municipio, tipoTour, telefono, tipoServicio,
           id_usuario: req.usuarioId,
           imagen,
+          latitud: latitud ?? null,
+          longitud: longitud ?? null,
           activo: false,
         }
       });
@@ -117,6 +122,8 @@ app.put(
     body('tipoServicio').optional().isString().isLength({ max: 50 }),
     body('imagen').optional().isString(),
     body('activo').optional().isBoolean(),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -124,13 +131,14 @@ app.put(
     try {
       const {
         nombre, id_municipio, tipoTour, telefono, tipoServicio,
-        imagen, activo,
+        imagen, activo, latitud, longitud,
       } = req.body;
 
       const tourActualizado = await prisma.provedor_tour.update({
         where: { id_provedor: Number(id) },
         data: {
           nombre, id_municipio, tipoTour, telefono, tipoServicio, imagen, activo,
+          latitud, longitud,
         }
       });
       res.status(200).json(tourActualizado);

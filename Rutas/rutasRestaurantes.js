@@ -85,6 +85,8 @@ app.post(
     body('imagen').optional().isString(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -93,6 +95,7 @@ app.post(
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
         id_municipio, telefono, email,
         imagen, horarioAbierto, horarioCerrado,
+        latitud, longitud,
       } = req.body;
 
       const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
@@ -108,6 +111,8 @@ app.post(
           imagen,
           horarioAbierto: formatearHora(horarioAbierto),
           horarioCerrado: formatearHora(horarioCerrado),
+          latitud: latitud ?? null,
+          longitud: longitud ?? null,
         }
       });
       res.status(201).json(nuevoRestaurante);
@@ -136,6 +141,8 @@ app.put(
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
     body('activo').optional().isBoolean(),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -145,6 +152,7 @@ app.put(
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
         id_municipio, telefono, email,
         imagen, horarioAbierto, horarioCerrado, activo,
+        latitud, longitud,
       } = req.body;
 
       const formatearHora = (hora) => (hora !== undefined) ? (hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null) : undefined;
@@ -154,6 +162,7 @@ app.put(
         id_municipio, email, imagen, activo,
         horarioAbierto: formatearHora(horarioAbierto),
         horarioCerrado: formatearHora(horarioCerrado),
+        latitud, longitud,
       };
 
       if (telefono !== undefined) {
