@@ -64,7 +64,7 @@ model hotel {
   telefono     BigInt?
   email        String?    @db.VarChar(50)
   imagen       String?    @db.MediumText
-  descripcion  String?    @db.VarChar(255)
+  descripcion  String?    @db.Text
   activo       Boolean    @default(true)
   id_usuario   Int?
   estrellas    Int?       @db.TinyInt
