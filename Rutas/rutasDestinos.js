@@ -12,7 +12,7 @@ app.get('/destinos', async (req, res) => {
   try {
     const destinos = await prisma.destino_turistico.findMany({
       where: { activo: true },
-      include: { municipio: true, categoria: true }
+      include: { municipio: true }
     });
     res.status(200).json(destinos);
   } catch (error) {
@@ -25,7 +25,7 @@ app.get('/destinos/mios', verificarToken, async (req, res) => {
   try {
     const destinos = await prisma.destino_turistico.findMany({
       where: { id_usuario: req.usuarioId },
-      include: { municipio: true, categoria: true }
+      include: { municipio: true }
     });
     res.status(200).json(destinos);
   } catch (error) {
@@ -40,7 +40,7 @@ app.get('/destinos/admin/todos', verificarToken, async (req, res) => {
       return res.status(403).json({ error: 'Acceso restringido a administradores.' });
     }
     const destinos = await prisma.destino_turistico.findMany({
-      include: { municipio: true, categoria: true }
+      include: { municipio: true }
     });
     res.status(200).json(destinos);
   } catch (error) {
@@ -76,13 +76,11 @@ app.post(
   [
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
-    body('codifoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
-    body('id_categoria').isInt().withMessage('id_categoria es obligatorio y debe ser un número entero'),
+    body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('nombre').optional().isString().isLength({ max: 100 }),
     body('numero_Calle').optional().isInt(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
-    body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
   ],
   validateRequest,
@@ -90,8 +88,8 @@ app.post(
     try {
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
-        codifoPostal, horarioAbierto, horarioCerrado,
-        id_categoria, imagen,
+        codigoPostal, horarioAbierto, horarioCerrado,
+        imagen,
       } = req.body;
 
       const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
@@ -99,12 +97,11 @@ app.post(
       const nuevoDestino = await prisma.destino_turistico.create({
         data: {
           id_municipio, nombre, numero_Calle, nombre_Calle,
-          codifoPostal,
+          codigoPostal,
           horarioAbierto: formatearHora(horarioAbierto),
           horarioCerrado: formatearHora(horarioCerrado),
           id_usuario: req.usuarioId,
-          estadoConvenio: true,
-          id_categoria, imagen,
+          imagen,
           activo: false,
         }
       });
@@ -124,13 +121,11 @@ app.put(
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('id_municipio').optional().isInt(),
     body('nombre_Calle').optional().trim().isLength({ max: 50 }),
-    body('codifoPostal').optional().isInt(),
-    body('id_categoria').optional().isInt(),
+    body('codigoPostal').optional().isInt(),
     body('nombre').optional().isString().isLength({ max: 100 }),
     body('numero_Calle').optional().isInt(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
-    body('estadoConvenio').optional().isBoolean(),
     body('imagen').optional().isString(),
     body('activo').optional().isBoolean(),
   ],
@@ -140,21 +135,23 @@ app.put(
     try {
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
-        codifoPostal, horarioAbierto, horarioCerrado,
-        estadoConvenio, id_categoria, imagen, activo,
+        codigoPostal, horarioAbierto, horarioCerrado,
+        imagen, activo,
       } = req.body;
 
-      const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
+      const formatearHora = (hora) => (hora !== undefined) ? (hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null) : undefined;
+
+      const dataToUpdate = {
+        id_municipio, nombre, numero_Calle, nombre_Calle,
+        codigoPostal,
+        horarioAbierto: formatearHora(horarioAbierto),
+        horarioCerrado: formatearHora(horarioCerrado),
+        imagen, activo,
+      };
 
       const destinoActualizado = await prisma.destino_turistico.update({
         where: { id_destino: Number(id) },
-        data: {
-          id_municipio, nombre, numero_Calle, nombre_Calle,
-          codifoPostal,
-          horarioAbierto: formatearHora(horarioAbierto),
-          horarioCerrado: formatearHora(horarioCerrado),
-          estadoConvenio, id_categoria, imagen, activo,
-        }
+        data: dataToUpdate
       });
       res.status(200).json(destinoActualizado);
     } catch (error) {

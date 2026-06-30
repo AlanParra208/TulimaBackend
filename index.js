@@ -51,7 +51,6 @@ app.use(require('./Rutas/rutasHoteles'));
 app.use(require('./Rutas/rutasMunicipios'));
 app.use(require('./Rutas/rutasRestaurantes'));
 app.use(require('./Rutas/rutasTours'));
-app.use(require('./Rutas/rutasCategoria'));
 app.use(require('./Rutas/rutasFavoritos'));
 app.use(require('./Rutas/rutasEventos'));
 
