@@ -100,6 +100,11 @@ app.post(
   validateRequest,
   async (req, res) => {
     try {
+      const yaTieneEvento = await prisma.evento.findFirst({ where: { id_usuario: req.usuarioId } });
+      if (yaTieneEvento) {
+        return res.status(400).json({ error: 'Ya tienes un evento registrado. Solo puedes tener un negocio por cuenta.' });
+      }
+
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
         codigoPostal, id_municipio, tipoEvento, fechaInicio,
@@ -185,7 +190,7 @@ app.put(
   }
 );
 
-// DELETE — borrado lógico
+// DELETE — borrado real (libera el cupo de "1 negocio por cuenta")
 app.delete(
   '/eventos/:id',
    verificarToken,
@@ -194,14 +199,19 @@ app.delete(
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.evento.update({
+      await prisma.evento.delete({
         where: { id_evento: Number(id) },
-        data: { activo: false }
       });
-      res.status(200).json({ message: 'Evento desactivado correctamente' });
+      res.status(200).json({ message: 'Evento eliminado correctamente' });
     } catch (error) {
-      console.error('Error al desactivar evento:', error);
-      res.status(500).json({ error: 'Error al desactivar el evento' });
+      console.error('Error al eliminar evento:', error);
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'El evento no existe o ya fue eliminado.' });
+      }
+      if (error.code === 'P2003') {
+        return res.status(409).json({ error: 'No puedes eliminar este evento porque tiene registros asociados.' });
+      }
+      res.status(500).json({ error: 'Error al eliminar el evento' });
     }
   }
 );

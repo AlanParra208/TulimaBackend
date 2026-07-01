@@ -38,6 +38,12 @@ app.get('/mapa/servicios', async (req, res) => {
         lng: h.longitud,
         id_municipio: h.id_municipio,
         municipio: h.municipio?.nombre,
+        direccion: `${h.numero_Calle} ${h.nombre_Calle}, CP ${h.codigoPostal}`,
+        telefono: h.telefono?.toString() ?? null,
+        email: h.email,
+        descripcion: h.descripcion,
+        estrellas: h.estrellas,
+        subtipo: h.tipo,
       })),
       ...restaurantes.map(r => ({
         id: `restaurante-${r.id_restaurante}`,
@@ -48,6 +54,12 @@ app.get('/mapa/servicios', async (req, res) => {
         lng: r.longitud,
         id_municipio: r.id_municipio,
         municipio: r.municipio?.nombre,
+        direccion: `${r.numero_Calle} ${r.nombre_Calle}, CP ${r.codigoPostal}`,
+        telefono: r.telefono?.toString() ?? null,
+        email: r.email,
+        horarioAbierto: r.horarioAbierto,
+        horarioCerrado: r.horarioCerrado,
+        subtipo: r.tipo,
       })),
       ...tours.map(t => ({
         id: `tour-${t.id_provedor}`,
@@ -58,6 +70,9 @@ app.get('/mapa/servicios', async (req, res) => {
         lng: t.longitud,
         id_municipio: t.id_municipio,
         municipio: t.municipio?.nombre,
+        telefono: t.telefono?.toString() ?? null,
+        subtipo: t.tipoTour,
+        tipoServicio: t.tipoServicio,
       })),
       ...destinos.map(d => ({
         id: `destino-${d.id_destino}`,
@@ -68,6 +83,10 @@ app.get('/mapa/servicios', async (req, res) => {
         lng: d.longitud,
         id_municipio: d.id_municipio,
         municipio: d.municipio?.nombre,
+        direccion: d.nombre_Calle ? `${d.numero_Calle ?? ''} ${d.nombre_Calle}, CP ${d.codifoPostal}`.trim() : null,
+        horarioAbierto: d.horarioAbierto,
+        horarioCerrado: d.horarioCerrado,
+        subtipo: d.tipo,
       })),
       ...eventos.map(e => ({
         id: `evento-${e.id_evento}`,
@@ -78,6 +97,10 @@ app.get('/mapa/servicios', async (req, res) => {
         lng: e.longitud,
         id_municipio: e.id_municipio,
         municipio: e.destino_turistico?.municipio?.nombre,
+        direccion: `${e.numero_Calle} ${e.nombre_Calle}, CP ${e.codigoPostal}`,
+        fechaInicio: e.fechaInicio,
+        fechaTermino: e.fechaTermino,
+        subtipo: e.tipoEvento,
       })),
     ];
 
