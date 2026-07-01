@@ -21,6 +21,8 @@ model destino_turistico {
   activo         Boolean    @default(true)
   id_usuario     Int?
   tipo           String?    @db.VarChar(100)
+  latitud        Float?
+  longitud       Float?
   municipio      municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "destino_turistico_municipio_FK")
   usuario        usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "destino_turistico_usuario_FK")
   evento         evento[]
@@ -45,6 +47,8 @@ model evento {
   id_usuario        Int?
   imagen            String?           @db.MediumText
   tipo              String?           @db.VarChar(100)
+  latitud           Float?
+  longitud          Float?
   destino_turistico destino_turistico @relation(fields: [id_destino], references: [id_destino], onUpdate: Restrict, map: "evento_destino_turistico_FK")
   usuario           usuario?          @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "evento_usuario_FK")
   favoritos         Favorito[]
@@ -68,6 +72,8 @@ model hotel {
   activo       Boolean    @default(true)
   id_usuario   Int?
   estrellas    Int?       @db.TinyInt
+  latitud      Float?
+  longitud     Float?
   favoritos    Favorito[]
   municipio    municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
   usuario      usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "hotel_usuario_FK")
@@ -97,6 +103,8 @@ model provedor_tour {
   id_municipio Int
   activo       Boolean    @default(true)
   id_usuario   Int?
+  latitud      Float?
+  longitud     Float?
   favoritos    Favorito[]
   municipio    municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "provedor_tour_municipio_FK")
   usuario      usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "provedor_tour_usuario_FK")
@@ -120,6 +128,8 @@ model restaurante {
   horarioCerrado DateTime?  @db.Time(0)
   activo         Boolean    @default(true)
   id_usuario     Int?
+  latitud        Float?
+  longitud       Float?
   favoritos      Favorito[]
   municipio      municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "restaurante_municipio_FK")
   usuario        usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "restaurante_usuario_FK")
