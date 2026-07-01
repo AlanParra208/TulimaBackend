@@ -139,7 +139,7 @@ app.post(
   '/login',
   normalizeUserFields,
   [
-    body('nombreUsuario').trim().notEmpty().withMessage('nombreUsuario es obligatorio').isLength({ max: 15 }),
+    body('nombreUsuario').trim().notEmpty().withMessage('nombreUsuario es obligatorio').isLength({ max: 30 }),
     body('contraseña').notEmpty().withMessage('contraseña es obligatoria').isLength({ min: 6, max: 100 }),
   ],
   validateRequest,
@@ -147,11 +147,16 @@ app.post(
     const { nombreUsuario, contraseña } = req.body;
 
     try {
+
+        const esCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nombreUsuario);
+        
         const usuario = await prisma.usuario.findFirst({
-            where: {
-                nombreUsuario: nombreUsuario,
-                activo: true 
-            }
+          where: {
+            ...(esCorreo
+              ? { correo: nombreUsuario }
+              : { nombreUsuario: nombreUsuario }),
+            activo: true
+          }
         });
 
         if (!usuario) {
