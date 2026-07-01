@@ -94,6 +94,8 @@ app.post(
     body('fechaInicio').notEmpty().withMessage('fechaInicio es obligatoria'),
     body('fechaTermino').notEmpty().withMessage('fechaTermino es obligatoria'),
     body('imagen').optional().isString(),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -101,7 +103,7 @@ app.post(
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
         codigoPostal, id_municipio, tipoEvento, fechaInicio,
-        fechaTermino, imagen
+        fechaTermino, imagen, latitud, longitud
       } = req.body;
 
       const nuevoEvento = await prisma.evento.create({
@@ -116,6 +118,8 @@ app.post(
           fechaInicio: new Date(fechaInicio),
           fechaTermino: new Date(fechaTermino),
           imagen,
+          latitud: latitud ?? null,
+          longitud: longitud ?? null,
           id_usuario: req.usuarioId, // <-- FALTABA
           activo: false,             // <-- pendiente de aprobación como los demás
         }
@@ -140,6 +144,8 @@ app.put(
     body('fechaTermino').optional(),
     body('activo').optional().isBoolean(),
     body('imagen').optional().isString(),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -148,7 +154,8 @@ app.put(
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
         codigoPostal, id_municipio, tipoEvento,
-        fechaInicio, fechaTermino, activo, imagen
+        fechaInicio, fechaTermino, activo, imagen,
+        latitud, longitud
       } = req.body;
 
       const data = {};
@@ -163,6 +170,8 @@ app.put(
       if (fechaTermino !== undefined) data.fechaTermino = new Date(fechaTermino);
       if (activo !== undefined) data.activo = activo;
       if (imagen !== undefined) data.imagen = imagen;
+      if (latitud !== undefined) data.latitud = latitud;
+      if (longitud !== undefined) data.longitud = longitud;
 
       const eventoActualizado = await prisma.evento.update({
         where: { id_evento: Number(id) },

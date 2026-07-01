@@ -86,6 +86,8 @@ app.post(
     body('imagen').optional().isString(),
     body('descripcion').optional().isString().isLength({ max: 255 }),
     body('estrellas').optional().isInt({ min: 1, max: 5 }).withMessage('estrellas debe ser un número entre 1 y 5'),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -94,6 +96,7 @@ app.post(
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
         id_municipio, tipo, telefono, email,
         imagen, descripcion, estrellas,
+        latitud, longitud,
       } = req.body;
 
       const nuevoHotel = await prisma.hotel.create({
@@ -104,6 +107,8 @@ app.post(
           email,
           id_usuario: req.usuarioId,
           imagen, descripcion, estrellas,
+          latitud: latitud ?? null,
+          longitud: longitud ?? null,
           activo: false, // Por defecto inactivo hasta que un admin lo apruebe
         }
       });
@@ -133,6 +138,8 @@ app.put(
     body('descripcion').optional().isString().isLength({ max: 255 }),
     body('activo').optional().isBoolean(),
     body('estrellas').optional().isInt({ min: 1, max: 5 }).withMessage('estrellas debe ser un número entre 1 y 5'),
+    body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
+    body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
   ],
   validateRequest,
   async (req, res) => {
@@ -142,11 +149,13 @@ app.put(
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
         id_municipio, tipo, telefono, email,
         imagen, descripcion, activo, estrellas,
+        latitud, longitud,
       } = req.body;
 
       const dataToUpdate = {
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
         id_municipio, tipo, email, imagen, descripcion, activo, estrellas,
+        latitud, longitud,
       };
 
       if (telefono !== undefined) {
