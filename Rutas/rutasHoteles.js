@@ -92,6 +92,11 @@ app.post(
   validateRequest,
   async (req, res) => {
     try {
+      const yaTieneHotel = await prisma.hotel.findFirst({ where: { id_usuario: req.usuarioId } });
+      if (yaTieneHotel) {
+        return res.status(400).json({ error: 'Ya tienes un hotel registrado. Solo puedes tener un negocio por cuenta.' });
+      }
+
       const {
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
         id_municipio, tipo, telefono, email,
@@ -174,7 +179,7 @@ app.put(
   }
 );
 
-// DELETE — borrado lógico
+// DELETE — borrado real (libera el cupo de "1 negocio por cuenta")
 app.delete(
   '/hoteles/:id',
    verificarToken,
@@ -183,14 +188,13 @@ app.delete(
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.hotel.update({
+      await prisma.hotel.delete({
         where: { id_hotel: Number(id) },
-        data: { activo: false }
       });
-      res.status(200).json({ message: 'Hotel desactivado correctamente' });
+      res.status(200).json({ message: 'Hotel eliminado correctamente' });
     } catch (error) {
-      console.error('Error al desactivar hotel:', error);
-      res.status(500).json({ error: 'Error al desactivar el hotel o registro no encontrado' });
+      console.error('Error al eliminar hotel:', error);
+      res.status(500).json({ error: 'Error al eliminar el hotel o registro no encontrado' });
     }
   }
 );

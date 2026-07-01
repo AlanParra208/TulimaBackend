@@ -91,6 +91,11 @@ app.post(
   validateRequest,
   async (req, res) => {
     try {
+      const yaTieneRestaurante = await prisma.restaurante.findFirst({ where: { id_usuario: req.usuarioId } });
+      if (yaTieneRestaurante) {
+        return res.status(400).json({ error: 'Ya tienes un restaurante registrado. Solo puedes tener un negocio por cuenta.' });
+      }
+
       const {
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
         id_municipio, telefono, email,
@@ -181,20 +186,19 @@ app.put(
   }
 );
 
-// DELETE — borrado lógico
+// DELETE — borrado real (libera el cupo de "1 negocio por cuenta")
 app.delete(
   '/restaurantes/:id',
    verificarToken,
-  [param('id').isInt().withMessage('id debe ser un número entero')], // <-- FALTABA LA COMA
+  [param('id').isInt().withMessage('id debe ser un número entero')],
   validateRequest,
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.restaurante.update({
+      await prisma.restaurante.delete({
         where: { id_restaurante: Number(id) },
-        data: { activo: false }
       });
-      res.status(200).json({ message: 'Restaurante desactivado correctamente' });
+      res.status(200).json({ message: 'Restaurante eliminado correctamente' });
     } catch (error) {
       console.error('Error al eliminar restaurante:', error);
       res.status(500).json({ error: 'Error al eliminar el restaurante' });

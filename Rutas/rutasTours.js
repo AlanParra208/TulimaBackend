@@ -86,6 +86,11 @@ app.post(
   validateRequest,
   async (req, res) => {
     try {
+      const yaTieneTour = await prisma.provedor_tour.findFirst({ where: { id_usuario: req.usuarioId } });
+      if (yaTieneTour) {
+        return res.status(400).json({ error: 'Ya tienes un tour registrado. Solo puedes tener un negocio por cuenta.' });
+      }
+
       const {
         nombre, id_municipio, tipoTour, telefono, tipoServicio, imagen,
         latitud, longitud,
@@ -149,23 +154,22 @@ app.put(
   }
 );
 
-// DELETE — borrado lógico
+// DELETE — borrado real (libera el cupo de "1 negocio por cuenta")
 app.delete(
   '/tours/:id',
    verificarToken,
-  [param('id').isInt().withMessage('id debe ser un número entero')], // <-- FALTABA LA COMA
+  [param('id').isInt().withMessage('id debe ser un número entero')],
   validateRequest,
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.provedor_tour.update({
+      await prisma.provedor_tour.delete({
         where: { id_provedor: Number(id) },
-        data: { activo: false }
       });
-      res.status(200).json({ message: 'Tour desactivado correctamente' });
+      res.status(200).json({ message: 'Tour eliminado correctamente' });
     } catch (error) {
-      console.error('Error al desactivar tour:', error);
-      res.status(500).json({ error: 'Error al desactivar el tour o registro no encontrado' });
+      console.error('Error al eliminar tour:', error);
+      res.status(500).json({ error: 'Error al eliminar el tour o registro no encontrado' });
     }
   }
 );

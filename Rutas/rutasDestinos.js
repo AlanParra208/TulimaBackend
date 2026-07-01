@@ -88,6 +88,11 @@ app.post(
   validateRequest,
   async (req, res) => {
     try {
+      const yaTieneDestino = await prisma.destino_turistico.findFirst({ where: { id_usuario: req.usuarioId } });
+      if (yaTieneDestino) {
+        return res.status(400).json({ error: 'Ya tienes un destino registrado. Solo puedes tener un negocio por cuenta.' });
+      }
+
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
         codigoPostal, horarioAbierto, horarioCerrado,
@@ -168,7 +173,7 @@ app.put(
   }
 );
 
-// DELETE — borrado lógico
+// DELETE — borrado real (libera el cupo de "1 negocio por cuenta")
 app.delete(
   '/destinos/:id',
    verificarToken,
@@ -177,14 +182,19 @@ app.delete(
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.destino_turistico.update({
+      await prisma.destino_turistico.delete({
         where: { id_destino: Number(id) },
-        data: { activo: false }
       });
       res.status(200).json({ message: 'Destino turístico eliminado correctamente' });
     } catch (error) {
       console.error('Error al eliminar destino:', error);
-      res.status(500).json({ error: 'Error al eliminar el destino turístico o registro no encontrado' });
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'El destino no existe o ya fue eliminado.' });
+      }
+      if (error.code === 'P2003') {
+        return res.status(409).json({ error: 'No puedes eliminar este destino porque tiene eventos asociados. Elimina primero esos eventos.' });
+      }
+      res.status(500).json({ error: 'Error al eliminar el destino turístico' });
     }
   }
 );
