@@ -95,7 +95,7 @@ app.post(
 
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
-        codigoPostal, horarioAbierto, horarioCerrado,
+        codifoPostal, horarioAbierto, horarioCerrado,
         imagen, latitud, longitud,
       } = req.body;
 
@@ -146,7 +146,7 @@ app.put(
     try {
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
-        codigoPostal, horarioAbierto, horarioCerrado,
+        codifoPostal, horarioAbierto, horarioCerrado,
         imagen, activo, latitud, longitud,
       } = req.body;
 
