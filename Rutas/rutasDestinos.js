@@ -76,7 +76,7 @@ app.post(
   [
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
-    body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
+    body('codifoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('nombre').optional().isString().isLength({ max: 100 }),
     body('numero_Calle').optional().isInt(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
@@ -130,7 +130,7 @@ app.put(
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('id_municipio').optional().isInt(),
     body('nombre_Calle').optional().trim().isLength({ max: 50 }),
-    body('codigoPostal').optional().isInt(),
+    body('codifoPostal').optional().isInt(),
     body('nombre').optional().isString().isLength({ max: 100 }),
     body('numero_Calle').optional().isInt(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
