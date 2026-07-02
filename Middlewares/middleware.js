@@ -23,7 +23,7 @@ const verificarToken = (req, res, next) => {
 
 const generateCsrfToken = (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
-    const ttlMs = 15 * 60 * 1000; 
+    const ttlMs = 2 * 60 * 60 * 1000; 
 
     res.cookie('csrf-token-cookie', token, {
         httpOnly: true,
