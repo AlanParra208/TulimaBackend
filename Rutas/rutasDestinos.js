@@ -104,7 +104,7 @@ app.post(
       const nuevoDestino = await prisma.destino_turistico.create({
         data: {
           id_municipio, nombre, numero_Calle, nombre_Calle,
-          codigoPostal,
+          codifoPostal,
           horarioAbierto: formatearHora(horarioAbierto),
           horarioCerrado: formatearHora(horarioCerrado),
           id_usuario: req.usuarioId,
@@ -154,7 +154,7 @@ app.put(
 
       const dataToUpdate = {
         id_municipio, nombre, numero_Calle, nombre_Calle,
-        codigoPostal,
+        codifoPostal,
         horarioAbierto: formatearHora(horarioAbierto),
         horarioCerrado: formatearHora(horarioCerrado),
         imagen, activo,
