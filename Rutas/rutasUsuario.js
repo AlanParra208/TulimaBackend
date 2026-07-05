@@ -120,12 +120,16 @@ app.get('/auth/me', verificarToken, async (req, res) => {
         }
 
         res.json({
-            id_usuario: usuario.id_usuario,
-            primerNombre: usuario.primerNombre,
-            apellidoPaterno: usuario.apellidoPaterno,
-            nombreUsuario: usuario.nombreUsuario,
-            rol: usuario.rol,
-            tipo_servicio: usuario.tipo_servicio
+          id_usuario: usuario.id_usuario,
+          primerNombre: usuario.primerNombre,
+          apellidoPaterno: usuario.apellidoPaterno,
+          nombreUsuario: usuario.nombreUsuario,
+          rol: usuario.rol,
+          tipo_servicio: usuario.tipo_servicio,
+          googleId: usuario.googleId,     
+          telefono: usuario.telefono,      
+          genero: usuario.genero,
+          edad: usuario.edad,
         });
 
     } catch (error) {
@@ -519,6 +523,35 @@ app.post(
         res.status(500).json({ error: 'Error al crear el usuario' });
     }
 });
+
+app.put(
+  '/usuario/completar-perfil',
+  verificarToken,
+  [
+    body('telefono').optional().isString().isLength({ max: 20 }),
+    body('genero').optional().isString().isIn(['masculino', 'femenino', 'otro', 'prefiero_no_decir']),
+    body('edad').optional().isInt({ min: 1, max: 120 }),
+  ],
+  validateRequest,
+  async (req, res) => {
+    try {
+      const { telefono, genero, edad } = req.body;
+      const data = {};
+      if (telefono !== undefined) data.telefono = telefono;
+      if (genero !== undefined) data.genero = genero;
+      if (edad !== undefined) data.edad = Number(edad);
+
+      const usuario = await prisma.usuario.update({
+        where: { id_usuario: req.usuarioId },
+        data
+      });
+      res.status(200).json({ message: 'Perfil completado', usuario });
+    } catch (error) {
+      console.error('Error al completar perfil:', error);
+      res.status(500).json({ error: 'Error al actualizar el perfil' });
+    }
+  }
+);
 
 // Modificar un usuario por id (protegido)
 app.put(
