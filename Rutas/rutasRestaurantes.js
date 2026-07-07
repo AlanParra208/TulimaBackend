@@ -14,7 +14,7 @@ app.get('/restaurantes', async (req, res) => {
     const restaurantes = await prisma.restaurante.findMany({
       where: {
         activo: true,
-        ...(especialidad ? { especialidad: { contains: especialidad, mode: 'insensitive' } } : {}),
+        ...(especialidad ? { especialidad: { contains: especialidad } } : {}),
       },
       include: { municipio: true }
     });
