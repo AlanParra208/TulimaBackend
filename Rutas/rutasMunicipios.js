@@ -119,7 +119,12 @@ app.get('/municipios/:id/top-amados', async (req, res) => {
       include: { _count: { select: { favoritos: true } } },
     });
 
-    const tours = await prisma.provedor_tour.findMany({
+const tours = await prisma.provedor_tour.findMany({
+      where: { id_municipio: municipioId, activo: true },
+      include: { _count: { select: { favoritos: true } } },
+    });
+
+    const eventos = await prisma.evento.findMany({
       where: { id_municipio: municipioId, activo: true },
       include: { _count: { select: { favoritos: true } } },
     });
@@ -130,24 +135,40 @@ app.get('/municipios/:id/top-amados', async (req, res) => {
         nombre: h.nombre_hotel,
         imagen: h.imagen,
         corazones: h._count.favoritos,
+        id: h.id_hotel,
+        ruta: 'hoteles',
       })),
       ...restaurantes.map(r => ({
         tipo: 'Restaurante',
         nombre: r.nombre,
         imagen: r.imagen,
         corazones: r._count.favoritos,
+        id: r.id_restaurante,
+        ruta: 'restaurantes',
       })),
       ...destinos.map(d => ({
         tipo: 'Destino',
         nombre: d.nombre || 'Destino Turístico',
         imagen: d.imagen,
         corazones: d._count.favoritos,
+        id: d.id_destino,
+        ruta: null, // aún no existe una página individual de destinos
       })),
       ...tours.map(t => ({
         tipo: 'Tour',
         nombre: t.nombre,
         imagen: t.imagen,
         corazones: t._count.favoritos,
+        id: t.id_provedor,
+        ruta: 'tours',
+      })),
+      ...eventos.map(ev => ({
+        tipo: 'Evento',
+        nombre: ev.nombre_Evento,
+        imagen: ev.imagen,
+        corazones: ev._count.favoritos,
+        id: ev.id_evento,
+        ruta: 'eventos',
       })),
     ];
 
