@@ -10,8 +10,12 @@ const prisma = require('../config.db');
 // GET público — para turistas
 app.get('/restaurantes', async (req, res) => {
   try {
+    const { especialidad } = req.query;
     const restaurantes = await prisma.restaurante.findMany({
-      where: { activo: true },
+      where: {
+        activo: true,
+        ...(especialidad ? { especialidad: { contains: especialidad, mode: 'insensitive' } } : {}),
+      },
       include: { municipio: true }
     });
     res.status(200).json(restaurantes);
@@ -87,6 +91,7 @@ app.post(
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
     body('latitud').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('latitud inválida'),
     body('longitud').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('longitud inválida'),
+    body('especialidad').optional().isString().isLength({ max: 100 }),
   ],
   validateRequest,
   async (req, res) => {
@@ -100,7 +105,7 @@ app.post(
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal,
         id_municipio, telefono, email,
         imagen, horarioAbierto, horarioCerrado,
-        latitud, longitud,
+        latitud, longitud, especialidad,
       } = req.body;
 
       const formatearHora = (hora) => hora ? `1970-01-01T${hora.length === 5 ? hora + ':00' : hora}.000Z` : null;
@@ -118,6 +123,7 @@ app.post(
           horarioCerrado: formatearHora(horarioCerrado),
           latitud: latitud ?? null,
           longitud: longitud ?? null,
+          especialidad,
         }
       });
       res.status(201).json(nuevoRestaurante);

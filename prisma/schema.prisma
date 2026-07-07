@@ -130,6 +130,7 @@ model restaurante {
   id_usuario     Int?
   latitud        Float?
   longitud       Float?
+  especialidad   String?    @db.VarChar(100)
   favoritos      Favorito[]
   municipio      municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "restaurante_municipio_FK")
   usuario        usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "restaurante_usuario_FK")
