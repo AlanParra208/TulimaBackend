@@ -147,13 +147,13 @@ const tours = await prisma.provedor_tour.findMany({
         ruta: 'restaurantes',
       })),
       ...destinos.map(d => ({
-        tipo: 'Destino',
-        nombre: d.nombre || 'Destino Turístico',
-        imagen: d.imagen,
-        corazones: d._count.favoritos,
-        id: d.id_destino,
-        ruta: null, // aún no existe una página individual de destinos
-      })),
+  tipo: 'Destino',
+  nombre: d.nombre || 'Destino Turístico',
+  imagen: d.imagen,
+  corazones: d._count.favoritos,
+  id: d.id_destino,
+  ruta: '', // los destinos viven en el Home, no en su propia página
+})),
       ...tours.map(t => ({
         tipo: 'Tour',
         nombre: t.nombre,
