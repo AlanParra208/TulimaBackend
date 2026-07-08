@@ -119,6 +119,7 @@ model restaurante {
   tipo           String?    @db.VarChar(100)
   numero_Calle   Int
   nombre_Calle   String     @db.VarChar(50)
+  colonia        String?    @db.VarChar(100)
   codigoPostal   Int
   id_municipio   Int
   telefono       BigInt?
