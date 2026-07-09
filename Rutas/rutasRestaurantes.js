@@ -84,6 +84,7 @@ app.post(
     body('colonia').optional().trim().isLength({ max: 100 }),
     body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
+    body('pueblo').optional({ nullable: true }).isString().isLength({ max: 50 }).withMessage('pueblo inválido'),
     body('tipo').optional().isString().isLength({ max: 100 }),
     body('telefono').optional({ nullable: true }).isNumeric().withMessage('El teléfono debe ser numérico'),
     body('email').optional().isEmail().withMessage('email no es válido'),
@@ -104,7 +105,7 @@ app.post(
 
       const {
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal, colonia,
-        id_municipio, telefono, email,
+        id_municipio, pueblo, telefono, email,
         imagen, horarioAbierto, horarioCerrado,
         latitud, longitud, especialidad,
       } = req.body;
@@ -114,7 +115,7 @@ app.post(
       const nuevoRestaurante = await prisma.restaurante.create({
         data: {
           nombre, tipo, numero_Calle, nombre_Calle, codigoPostal, colonia,
-          id_municipio,
+          id_municipio, pueblo,
           telefono: telefono ? BigInt(telefono) : null,
           email,
           id_usuario: req.usuarioId,
@@ -147,6 +148,7 @@ app.put(
     body('colonia').optional().trim().isLength({ max: 100 }),
     body('codigoPostal').optional().isInt(),
     body('id_municipio').optional().isInt(),
+    body('pueblo').optional({ nullable: true }).isString().isLength({ max: 50 }).withMessage('pueblo inválido'),
     body('tipo').optional().isString().isLength({ max: 100 }),
     body('telefono').optional({ nullable: true }).isNumeric().withMessage('El teléfono debe ser numérico'),
     body('email').optional().isEmail(),
@@ -163,7 +165,7 @@ app.put(
     try {
       const {
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal, colonia,
-        id_municipio, telefono, email,
+        id_municipio, pueblo, telefono, email,
         imagen, horarioAbierto, horarioCerrado, activo,
         latitud, longitud,
       } = req.body;
@@ -172,7 +174,7 @@ app.put(
 
       const dataToUpdate = {
         nombre, tipo, numero_Calle, nombre_Calle, codigoPostal, colonia,
-        id_municipio, email, imagen, activo,
+        id_municipio, pueblo, email, imagen, activo,
         horarioAbierto: formatearHora(horarioAbierto),
         horarioCerrado: formatearHora(horarioCerrado),
         latitud, longitud,

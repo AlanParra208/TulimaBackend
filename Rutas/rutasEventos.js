@@ -90,6 +90,7 @@ app.post(
     body('nombre_Calle').trim().notEmpty().isLength({ max: 50 }),
     body('codigoPostal').isInt().withMessage('codigoPostal es obligatorio'),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio'),
+    body('pueblo').optional({ nullable: true }).isString().isLength({ max: 50 }).withMessage('pueblo inválido'),
     body('tipoEvento').optional().isString().isLength({ max: 50 }),
     body('fechaInicio').notEmpty().withMessage('fechaInicio es obligatoria'),
     body('fechaTermino').notEmpty().withMessage('fechaTermino es obligatoria'),
@@ -107,7 +108,7 @@ app.post(
 
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
-        codigoPostal, id_municipio, tipoEvento, fechaInicio,
+        codigoPostal, id_municipio, pueblo, tipoEvento, fechaInicio,
         fechaTermino, imagen, latitud, longitud
       } = req.body;
 
@@ -119,14 +120,15 @@ app.post(
           nombre_Calle,
           codigoPostal: Number(codigoPostal),
           id_municipio: Number(id_municipio),
+          pueblo,
           tipoEvento,
           fechaInicio: new Date(fechaInicio),
           fechaTermino: new Date(fechaTermino),
           imagen,
           latitud: latitud ?? null,
           longitud: longitud ?? null,
-          id_usuario: req.usuarioId, // <-- FALTABA
-          activo: false,             // <-- pendiente de aprobación como los demás
+          id_usuario: req.usuarioId, 
+          activo: false,             
         }
       });
       res.status(201).json(nuevoEvento);
@@ -144,6 +146,12 @@ app.put(
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('nombre_Evento').optional().trim().isLength({ max: 50 }),
+    body('id_destino').isInt().withMessage('id_destino es obligatorio'),
+    body('numero_Calle').isInt().withMessage('numero_Calle es obligatorio'),
+    body('nombre_Calle').trim().notEmpty().isLength({ max: 50 }),
+    body('codigoPostal').isInt().withMessage('codigoPostal es obligatorio'),
+    body('id_municipio').isInt().withMessage('id_municipio es obligatorio'),
+    body('pueblo').optional({ nullable: true }).isString().isLength({ max: 50 }).withMessage('pueblo inválido'),
     body('tipoEvento').optional().isString().isLength({ max: 50 }),
     body('fechaInicio').optional(),
     body('fechaTermino').optional(),
@@ -158,7 +166,7 @@ app.put(
     try {
       const {
         nombre_Evento, id_destino, numero_Calle, nombre_Calle,
-        codigoPostal, id_municipio, tipoEvento,
+        codigoPostal, id_municipio, pueblo, tipoEvento,
         fechaInicio, fechaTermino, activo, imagen,
         latitud, longitud
       } = req.body;
@@ -170,6 +178,7 @@ app.put(
       if (nombre_Calle !== undefined) data.nombre_Calle = nombre_Calle;
       if (codigoPostal !== undefined) data.codigoPostal = Number(codigoPostal);
       if (id_municipio !== undefined) data.id_municipio = Number(id_municipio);
+      if (pueblo !== undefined) data.pueblo = pueblo;
       if (tipoEvento !== undefined) data.tipoEvento = tipoEvento;
       if (fechaInicio !== undefined) data.fechaInicio = new Date(fechaInicio);
       if (fechaTermino !== undefined) data.fechaTermino = new Date(fechaTermino);
