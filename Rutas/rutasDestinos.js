@@ -77,6 +77,7 @@ app.post(
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
     body('codifoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
+    body('pueblo').optional({ nullable: true }).isString().isLength({ max: 50 }).withMessage('pueblo inválido'),
     body('nombre').optional().isString().isLength({ max: 100 }),
     body('numero_Calle').optional().isInt(),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
@@ -95,7 +96,7 @@ app.post(
 
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
-        codifoPostal, horarioAbierto, horarioCerrado,
+        codifoPostal, pueblo, horarioAbierto, horarioCerrado,
         imagen, latitud, longitud,
       } = req.body;
 
@@ -104,7 +105,7 @@ app.post(
       const nuevoDestino = await prisma.destino_turistico.create({
         data: {
           id_municipio, nombre, numero_Calle, nombre_Calle,
-          codifoPostal,
+          codifoPostal, pueblo,
           horarioAbierto: formatearHora(horarioAbierto),
           horarioCerrado: formatearHora(horarioCerrado),
           id_usuario: req.usuarioId,
@@ -133,6 +134,7 @@ app.put(
     body('codifoPostal').optional().isInt(),
     body('nombre').optional().isString().isLength({ max: 100 }),
     body('numero_Calle').optional().isInt(),
+    body('pueblo').optional({ nullable: true }).isString().isLength({ max: 50 }).withMessage('pueblo inválido'),
     body('horarioAbierto').optional().isString().isLength({ max: 8 }),
     body('horarioCerrado').optional().isString().isLength({ max: 8 }),
     body('imagen').optional().isString(),
@@ -146,7 +148,7 @@ app.put(
     try {
       const {
         id_municipio, nombre, numero_Calle, nombre_Calle,
-        codifoPostal, horarioAbierto, horarioCerrado,
+        codifoPostal, pueblo, horarioAbierto, horarioCerrado,
         imagen, activo, latitud, longitud,
       } = req.body;
 
@@ -154,7 +156,7 @@ app.put(
 
       const dataToUpdate = {
         id_municipio, nombre, numero_Calle, nombre_Calle,
-        codifoPostal,
+        codifoPostal, pueblo,
         horarioAbierto: formatearHora(horarioAbierto),
         horarioCerrado: formatearHora(horarioCerrado),
         imagen, activo,

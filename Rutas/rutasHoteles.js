@@ -80,6 +80,7 @@ app.post(
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
     body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
+    body('pueblo').optional({ nullable: true }).isString().isLength({ max: 50 }).withMessage('pueblo inválido'),
     body('tipo').optional().isString().isLength({ max: 20 }),
     body('telefono').optional({ nullable: true }).isNumeric().withMessage('El teléfono debe ser numérico'),
     body('email').optional().isEmail().withMessage('email no es válido'),
@@ -99,7 +100,7 @@ app.post(
 
       const {
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
-        id_municipio, tipo, telefono, email,
+        id_municipio, pueblo, tipo, telefono, email,
         imagen, descripcion, estrellas,
         latitud, longitud,
       } = req.body;
@@ -107,7 +108,7 @@ app.post(
       const nuevoHotel = await prisma.hotel.create({
         data: {
           nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
-          id_municipio, tipo,
+          id_municipio, pueblo, tipo,
           telefono: telefono ? BigInt(telefono) : null,
           email,
           id_usuario: req.usuarioId,
@@ -136,6 +137,7 @@ app.put(
     body('nombre_Calle').optional().trim().isLength({ max: 50 }),
     body('codigoPostal').optional().isInt(),
     body('id_municipio').optional().isInt(),
+    body('pueblo').optional({ nullable: true }).isString().isLength({ max: 50 }).withMessage('pueblo inválido'),
     body('tipo').optional().isString().isLength({ max: 20 }),
     body('telefono').optional({ nullable: true }).isNumeric().withMessage('El teléfono debe ser numérico'),
     body('email').optional().isEmail(),
@@ -152,14 +154,14 @@ app.put(
     try {
       const {
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
-        id_municipio, tipo, telefono, email,
+        id_municipio, pueblo, tipo, telefono, email,
         imagen, descripcion, activo, estrellas,
         latitud, longitud,
       } = req.body;
 
       const dataToUpdate = {
         nombre_hotel, numero_Calle, nombre_Calle, codigoPostal,
-        id_municipio, tipo, email, imagen, descripcion, activo, estrellas,
+        id_municipio, pueblo, tipo, email, imagen, descripcion, activo, estrellas,
         latitud, longitud,
       };
 
