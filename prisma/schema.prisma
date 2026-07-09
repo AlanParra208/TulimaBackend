@@ -99,7 +99,7 @@ model provedor_tour {
   numero_Calle Int?
   nombre_Calle String?    @db.VarChar(100)
   colonia      String?    @db.VarChar(100)
-  codigoPostal Int
+  codigoPostal Int?
   tipoTour     String?    @db.VarChar(20)
   telefono     BigInt?
   tipoServicio String?    @db.VarChar(50)
