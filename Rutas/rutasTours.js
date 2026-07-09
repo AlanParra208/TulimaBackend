@@ -104,6 +104,10 @@ app.post(
         data: {
           nombre, id_municipio, tipoTour, telefono, tipoServicio,
           id_usuario: req.usuarioId,
+          numero_Calle: numero_Calle ?? null,
+          nombre_Calle: nombre_Calle ?? null,
+          colonia: colonia ?? null,
+          codigoPostal: codigoPostal ?? null,
           imagen,
           latitud: latitud ?? null,
           longitud: longitud ?? null,
