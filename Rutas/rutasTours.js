@@ -76,7 +76,7 @@ app.post(
   [
     body('nombre').trim().notEmpty().withMessage('nombre es obligatorio').isLength({ max: 30 }),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
-    body('numero_Calle').toInt().withMessage('numero_Calle debe ser un número entero'),
+    body('numero_Calle').optional({ nullable: true }).isInt().withMessage('numero_Calle debe ser un número entero').toInt(),
     body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
     body('colonia').optional().trim().isLength({ max: 100 }),
     body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
@@ -126,7 +126,7 @@ app.put(
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('nombre').optional().trim().isLength({ max: 30 }),
     body('id_municipio').optional().isInt(),
-    body('numero_Calle').optional().toInt().withMessage('numero_Calle debe ser un número entero'),
+    body('numero_Calle').optional({ nullable: true }).isInt().withMessage('numero_Calle debe ser un número entero').toInt(),
     body('nombre_Calle').optional().trim().isLength({ max: 50 }),
     body('colonia').optional().trim().isLength({ max: 100 }),
     body('codigoPostal').optional().isInt(),
