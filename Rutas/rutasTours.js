@@ -76,6 +76,10 @@ app.post(
   [
     body('nombre').trim().notEmpty().withMessage('nombre es obligatorio').isLength({ max: 30 }),
     body('id_municipio').isInt().withMessage('id_municipio es obligatorio y debe ser un número entero'),
+    body('numero_Calle').toInt().withMessage('numero_Calle debe ser un número entero'),
+    body('nombre_Calle').trim().notEmpty().withMessage('nombre_Calle es obligatorio').isLength({ max: 50 }),
+    body('colonia').optional().trim().isLength({ max: 100 }),
+    body('codigoPostal').isInt().withMessage('codigoPostal debe ser un número entero'),
     body('tipoTour').optional().isString().isLength({ max: 20 }),
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('tipoServicio').optional().isString().isLength({ max: 50 }),
@@ -93,7 +97,7 @@ app.post(
 
       const {
         nombre, id_municipio, tipoTour, telefono, tipoServicio, imagen,
-        latitud, longitud,
+        latitud, longitud, numero_Calle, nombre_Calle, colonia, codigoPostal
       } = req.body;
 
       const nuevoTour = await prisma.provedor_tour.create({
@@ -122,6 +126,10 @@ app.put(
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('nombre').optional().trim().isLength({ max: 30 }),
     body('id_municipio').optional().isInt(),
+    body('numero_Calle').optional().toInt().withMessage('numero_Calle debe ser un número entero'),
+    body('nombre_Calle').optional().trim().isLength({ max: 50 }),
+    body('colonia').optional().trim().isLength({ max: 100 }),
+    body('codigoPostal').optional().isInt(),
     body('tipoTour').optional().isString().isLength({ max: 20 }),
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('tipoServicio').optional().isString().isLength({ max: 50 }),
@@ -136,14 +144,14 @@ app.put(
     try {
       const {
         nombre, id_municipio, tipoTour, telefono, tipoServicio,
-        imagen, activo, latitud, longitud,
+        imagen, activo, latitud, longitud, numero_Calle, nombre_Calle, colonia, codigoPostal
       } = req.body;
 
       const tourActualizado = await prisma.provedor_tour.update({
         where: { id_provedor: Number(id) },
         data: {
           nombre, id_municipio, tipoTour, telefono, tipoServicio, imagen, activo,
-          latitud, longitud,
+          latitud, longitud, numero_Calle, nombre_Calle, colonia, codigoPostal
         }
       });
       res.status(200).json(tourActualizado);

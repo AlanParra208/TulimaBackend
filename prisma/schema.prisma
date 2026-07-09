@@ -96,6 +96,10 @@ model municipio {
 model provedor_tour {
   id_provedor  Int        @id @default(autoincrement())
   nombre       String     @db.VarChar(30)
+  numero_Calle Int?
+  nombre_Calle String?    @db.VarChar(100)
+  colonia      String?    @db.VarChar(100)
+  codigoPostal Int
   tipoTour     String?    @db.VarChar(20)
   telefono     BigInt?
   tipoServicio String?    @db.VarChar(50)
