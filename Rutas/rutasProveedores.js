@@ -53,7 +53,7 @@ app.post(
           genero: genero || null,
           edad: edad || null,
           rol: 'proveedor',
-          activo: false,
+          activo: true,
         },
       });
 
