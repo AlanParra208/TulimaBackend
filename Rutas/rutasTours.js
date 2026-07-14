@@ -112,7 +112,7 @@ app.post(
           imagen,
           latitud: latitud ?? null,
           longitud: longitud ?? null,
-          activo: false,
+          activo: true,
         }
       });
       res.status(201).json(nuevoTour);
