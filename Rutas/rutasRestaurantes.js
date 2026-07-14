@@ -119,7 +119,7 @@ app.post(
           telefono: telefono ? BigInt(telefono) : null,
           email,
           id_usuario: req.usuarioId,
-          activo: false,
+          activo: true,
           imagen,
           horarioAbierto: formatearHora(horarioAbierto),
           horarioCerrado: formatearHora(horarioCerrado),

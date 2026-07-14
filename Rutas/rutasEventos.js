@@ -128,7 +128,7 @@ app.post(
           latitud: latitud ?? null,
           longitud: longitud ?? null,
           id_usuario: req.usuarioId, 
-          activo: false,             
+          activo: true,             
         }
       });
       res.status(201).json(nuevoEvento);

@@ -115,7 +115,7 @@ app.post(
           imagen, descripcion, estrellas,
           latitud: latitud ?? null,
           longitud: longitud ?? null,
-          activo: false, // Por defecto inactivo hasta que un admin lo apruebe
+          activo: true, // Por defecto activo
         }
       });
       res.status(201).json(nuevoHotel);
