@@ -106,11 +106,7 @@ app.get(
             include: { municipio: true }
         },
         evento: {
-            include: {
-                destino_turistico: {
-                    include: { municipio: true }
-                }
-            }
+            include: { municipio: true }
         },
     }
 });
