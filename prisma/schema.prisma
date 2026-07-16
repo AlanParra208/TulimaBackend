@@ -9,24 +9,23 @@ datasource db {
 }
 
 model destino_turistico {
-  id_destino     Int        @id @default(autoincrement())
+  id_destino     Int         @id @default(autoincrement())
   id_municipio   Int
-  nombre         String?    @db.VarChar(100)
+  nombre         String?     @db.VarChar(100)
   numero_Calle   Int?
-  nombre_Calle   String     @db.VarChar(50)
+  nombre_Calle   String      @db.VarChar(50)
   codifoPostal   Int
-  pueblo       String?    @db.VarChar(50)
-  horarioAbierto DateTime?  @db.Time(0)
-  horarioCerrado DateTime?  @db.Time(0)
-  imagen         String?    @db.MediumText
-  activo         Boolean    @default(true)
+  horarioAbierto DateTime?   @db.Time(0)
+  horarioCerrado DateTime?   @db.Time(0)
+  imagen         String?     @db.MediumText
+  activo         Boolean     @default(true)
   id_usuario     Int?
-  tipo           String?    @db.VarChar(100)
+  tipo           String?     @db.VarChar(100)
   latitud        Float?
   longitud       Float?
-  municipio      municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "destino_turistico_municipio_FK")
-  usuario        usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "destino_turistico_usuario_FK")
-  evento         evento[]
+  pueblo         String?     @db.VarChar(50)
+  municipio      municipio   @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "destino_turistico_municipio_FK")
+  usuario        usuario?    @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "destino_turistico_usuario_FK")
   favoritos      Favorito[]
 
   @@index([id_municipio], map: "destino_turistico_municipio_FK")
@@ -34,52 +33,78 @@ model destino_turistico {
 }
 
 model evento {
-  id_evento         Int               @id @default(autoincrement())
-  id_destino        Int
-  nombre_Evento     String            @db.VarChar(50)
-  numero_Calle      Int
-  nombre_Calle      String            @db.VarChar(50)
-  codigoPostal      Int
-  id_municipio      Int
-  pueblo       String?    @db.VarChar(50)
-  tipoEvento        String?           @db.VarChar(50)
-  fechaInicio       DateTime          @db.DateTime(0)
-  fechaTermino      DateTime          @db.DateTime(0)
-  activo            Boolean           @default(true)
-  id_usuario        Int?
-  imagen            String?           @db.MediumText
-  tipo              String?           @db.VarChar(100)
-  latitud           Float?
-  longitud          Float?
-  destino_turistico destino_turistico @relation(fields: [id_destino], references: [id_destino], onUpdate: Restrict, map: "evento_destino_turistico_FK")
-  usuario           usuario?          @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "evento_usuario_FK")
-  favoritos         Favorito[]
+  id_evento     Int         @id @default(autoincrement())
+  nombre_Evento String      @db.VarChar(50)
+  numero_Calle  Int
+  nombre_Calle  String      @db.VarChar(50)
+  codigoPostal  Int
+  id_municipio  Int
+  tipoEvento    String?     @db.VarChar(50)
+  fechaInicio   DateTime    @db.DateTime(0)
+  fechaTermino  DateTime    @db.DateTime(0)
+  activo        Boolean     @default(true)
+  id_usuario    Int?
+  imagen        String?     @db.MediumText
+  tipo          String?     @db.VarChar(100)
+  latitud       Float?
+  longitud      Float?
+  pueblo        String?     @db.VarChar(50)
+  municipio     municipio   @relation(fields: [id_municipio], references: [id_municipio], onDelete: NoAction, onUpdate: NoAction, map: "evento_municipio_FK")
+  usuario       usuario?    @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "evento_usuario_FK")
+  favoritos     Favorito[]
 
-  @@index([id_destino], map: "evento_destino_turistico_FK")
+  @@index([id_municipio], map: "evento_municipio_FK")
   @@index([id_usuario], map: "evento_usuario_FK")
 }
 
+model Favorito {
+  id_favorito       Int                @id @default(autoincrement())
+  id_usuario        Int
+  id_hotel          Int?
+  id_restaurante    Int?
+  id_destino        Int?
+  id_provedor_tour  Int?
+  id_evento         Int?
+  evento            evento?            @relation(fields: [id_evento], references: [id_evento], onDelete: NoAction, onUpdate: NoAction, map: "favoritos_evento_FK")
+  destino_turistico destino_turistico? @relation(fields: [id_destino], references: [id_destino], onDelete: Cascade)
+  hotel             hotel?             @relation(fields: [id_hotel], references: [id_hotel], onDelete: Cascade)
+  provedor_tour     provedor_tour?     @relation(fields: [id_provedor_tour], references: [id_provedor], onDelete: Cascade)
+  restaurante       restaurante?       @relation(fields: [id_restaurante], references: [id_restaurante], onDelete: Cascade)
+  usuario           usuario            @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@unique([id_usuario, id_destino])
+  @@unique([id_usuario, id_hotel])
+  @@unique([id_usuario, id_provedor_tour])
+  @@unique([id_usuario, id_restaurante])
+  @@index([id_evento], map: "favoritos_evento_FK")
+  @@index([id_destino], map: "favoritos_id_destino_fkey")
+  @@index([id_hotel], map: "favoritos_id_hotel_fkey")
+  @@index([id_provedor_tour], map: "favoritos_id_provedor_tour_fkey")
+  @@index([id_restaurante], map: "favoritos_id_restaurante_fkey")
+  @@map("favoritos")
+}
+
 model hotel {
-  id_hotel     Int        @id @default(autoincrement())
-  nombre_hotel String     @db.VarChar(25)
+  id_hotel     Int         @id @default(autoincrement())
+  nombre_hotel String      @db.VarChar(25)
   numero_Calle Int
-  nombre_Calle String     @db.VarChar(50)
+  nombre_Calle String      @db.VarChar(50)
   codigoPostal Int
   id_municipio Int
-  pueblo       String?    @db.VarChar(50)
-  tipo         String?    @db.VarChar(20)
+  tipo         String?     @db.VarChar(20)
   telefono     BigInt?
-  email        String?    @db.VarChar(50)
-  imagen       String?    @db.MediumText
-  descripcion  String?    @db.Text
-  activo       Boolean    @default(true)
+  email        String?     @db.VarChar(50)
+  imagen       String?     @db.MediumText
+  descripcion  String?     @db.Text
+  activo       Boolean     @default(true)
   id_usuario   Int?
-  estrellas    Int?       @db.TinyInt
+  estrellas    Int?        @db.TinyInt
   latitud      Float?
   longitud     Float?
+  pueblo       String?     @db.VarChar(50)
   favoritos    Favorito[]
-  municipio    municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
-  usuario      usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "hotel_usuario_FK")
+  municipio    municipio   @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "hotel_municipio_FK")
+  usuario      usuario?    @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "hotel_usuario_FK")
 
   @@index([id_municipio], map: "hotel_municipio_FK")
   @@index([id_usuario], map: "hotel_usuario_FK")
@@ -91,59 +116,60 @@ model municipio {
   url_imagen        String?             @db.Text
   descripcion       String?             @db.Text
   destino_turistico destino_turistico[]
+  evento            evento[]
   hotel             hotel[]
   provedor_tour     provedor_tour[]
   restaurante       restaurante[]
 }
 
 model provedor_tour {
-  id_provedor  Int        @id @default(autoincrement())
-  nombre       String     @db.VarChar(30)
+  id_provedor  Int         @id @default(autoincrement())
+  nombre       String      @db.VarChar(30)
   numero_Calle Int?
-  nombre_Calle String?    @db.VarChar(100)
-  colonia      String?    @db.VarChar(100)
-  codigoPostal Int?
-  pueblo       String?    @db.VarChar(50)
-  tipoTour     String?    @db.VarChar(20)
+  nombre_Calle String?     @db.VarChar(100)
+  colonia      String?     @db.VarChar(100)
+  codigoPostal Int
+  tipoTour     String?     @db.VarChar(20)
   telefono     BigInt?
-  tipoServicio String?    @db.VarChar(50)
-  imagen       String?    @db.MediumText
+  tipoServicio String?     @db.VarChar(50)
+  imagen       String?     @db.MediumText
   id_municipio Int
-  activo       Boolean    @default(true)
+  activo       Boolean     @default(true)
   id_usuario   Int?
   latitud      Float?
   longitud     Float?
+  pueblo       String?     @db.VarChar(50)
   favoritos    Favorito[]
-  municipio    municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "provedor_tour_municipio_FK")
-  usuario      usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "provedor_tour_usuario_FK")
+  municipio    municipio   @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "provedor_tour_municipio_FK")
+  usuario      usuario?    @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "provedor_tour_usuario_FK")
 
   @@index([id_municipio], map: "provedor_tour_municipio_FK")
   @@index([id_usuario], map: "provedor_tour_usuario_FK")
 }
 
 model restaurante {
-  id_restaurante Int        @id @default(autoincrement())
-  nombre         String     @db.VarChar(50)
-  tipo           String?    @db.VarChar(100)
+  id_restaurante Int         @id @default(autoincrement())
+  nombre         String      @db.VarChar(50)
+  tipo           String?     @db.VarChar(100)
   numero_Calle   Int
-  nombre_Calle   String     @db.VarChar(50)
-  colonia        String?    @db.VarChar(100)
+  nombre_Calle   String      @db.VarChar(50)
+  colonia        String?     @db.VarChar(100)
   codigoPostal   Int
   id_municipio   Int
-  pueblo       String?    @db.VarChar(50)
   telefono       BigInt?
-  email          String?    @db.VarChar(50)
-  imagen         String?    @db.MediumText
-  horarioAbierto DateTime?  @db.Time(0)
-  horarioCerrado DateTime?  @db.Time(0)
-  activo         Boolean    @default(true)
+  email          String?     @db.VarChar(50)
+  imagen         String?     @db.MediumText
+  horarioAbierto DateTime?   @db.Time(0)
+  horarioCerrado DateTime?   @db.Time(0)
+  activo         Boolean     @default(true)
   id_usuario     Int?
   latitud        Float?
   longitud       Float?
-  especialidad   String?    @db.VarChar(100)
+  especialidad   String?     @db.VarChar(100)
+  pueblo         String?     @db.VarChar(50)
   favoritos      Favorito[]
-  municipio      municipio  @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "restaurante_municipio_FK")
-  usuario        usuario?   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "restaurante_usuario_FK")
+  municipio      municipio   @relation(fields: [id_municipio], references: [id_municipio], onUpdate: Restrict, map: "restaurante_municipio_FK")
+  usuario        usuario?    @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction, map: "restaurante_usuario_FK")
 
   @@index([id_municipio], map: "restaurante_municipio_FK")
   @@index([id_usuario], map: "restaurante_usuario_FK")
@@ -174,31 +200,4 @@ model usuario {
   hotel             hotel[]
   provedor_tour     provedor_tour[]
   restaurante       restaurante[]
-}
-
-model Favorito {
-  id_favorito       Int                @id @default(autoincrement())
-  id_usuario        Int
-  id_hotel          Int?
-  id_restaurante    Int?
-  id_destino        Int?
-  id_provedor_tour  Int?
-  id_evento         Int?
-  evento            evento?            @relation(fields: [id_evento], references: [id_evento], onDelete: NoAction, onUpdate: NoAction, map: "favoritos_evento_FK")
-  destino_turistico destino_turistico? @relation(fields: [id_destino], references: [id_destino], onDelete: Cascade)
-  hotel             hotel?             @relation(fields: [id_hotel], references: [id_hotel], onDelete: Cascade)
-  provedor_tour     provedor_tour?     @relation(fields: [id_provedor_tour], references: [id_provedor], onDelete: Cascade)
-  restaurante       restaurante?       @relation(fields: [id_restaurante], references: [id_restaurante], onDelete: Cascade)
-  usuario           usuario            @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-
-  @@unique([id_usuario, id_hotel])
-  @@unique([id_usuario, id_restaurante])
-  @@unique([id_usuario, id_destino])
-  @@unique([id_usuario, id_provedor_tour])
-  @@index([id_destino], map: "favoritos_id_destino_fkey")
-  @@index([id_hotel], map: "favoritos_id_hotel_fkey")
-  @@index([id_provedor_tour], map: "favoritos_id_provedor_tour_fkey")
-  @@index([id_restaurante], map: "favoritos_id_restaurante_fkey")
-  @@index([id_evento], map: "favoritos_evento_FK")
-  @@map("favoritos")
 }

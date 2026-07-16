@@ -118,6 +118,9 @@ app.post(
       res.status(201).json(nuevoDestino);
     } catch (error) {
       console.error('Error al crear destino:', error);
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'El municipio seleccionado no es válido.' });
+      }
       res.status(500).json({ error: 'Error al crear el destino turístico' });
     }
   }
@@ -170,12 +173,18 @@ app.put(
       res.status(200).json(destinoActualizado);
     } catch (error) {
       console.error('Error al actualizar destino:', error);
-      res.status(500).json({ error: 'Error al actualizar el destino turístico o registro no encontrado' });
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'El municipio seleccionado no es válido.' });
+      }
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'El destino que intentas actualizar ya no existe.' });
+      }
+      res.status(500).json({ error: 'Error al actualizar el destino turístico' });
     }
   }
 );
 
-// DELETE — borrado real (libera el cupo de "1 negocio por cuenta")
+
 app.delete(
   '/destinos/:id',
    verificarToken,
@@ -184,19 +193,17 @@ app.delete(
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.destino_turistico.delete({
+      await prisma.destino_turistico.update({
         where: { id_destino: Number(id) },
+        data: { activo: false },
       });
-      res.status(200).json({ message: 'Destino turístico eliminado correctamente' });
+      res.status(200).json({ message: 'Destino turístico desactivado correctamente' });
     } catch (error) {
-      console.error('Error al eliminar destino:', error);
+      console.error('Error al desactivar destino:', error);
       if (error.code === 'P2025') {
-        return res.status(404).json({ error: 'El destino no existe o ya fue eliminado.' });
+        return res.status(404).json({ error: 'El destino no existe.' });
       }
-      if (error.code === 'P2003') {
-        return res.status(409).json({ error: 'No puedes eliminar este destino porque tiene eventos asociados. Elimina primero esos eventos.' });
-      }
-      res.status(500).json({ error: 'Error al eliminar el destino turístico' });
+      res.status(500).json({ error: 'Error al desactivar el destino turístico' });
     }
   }
 );

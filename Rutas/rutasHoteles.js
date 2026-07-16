@@ -121,6 +121,9 @@ app.post(
       res.status(201).json(nuevoHotel);
     } catch (error) {
       console.error('Error al crear hotel:', error);
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'El municipio seleccionado no es válido.' });
+      }
       res.status(500).json({ error: 'Error al crear el hotel' });
     }
   }
@@ -176,12 +179,17 @@ app.put(
       res.status(200).json(hotelActualizado);
     } catch (error) {
       console.error('Error al actualizar hotel:', error);
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'El municipio seleccionado no es válido.' });
+      }
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'El hotel que intentas actualizar ya no existe.' });
+      }
       res.status(500).json({ error: 'Error al actualizar el hotel' });
     }
   }
 );
 
-// DELETE — borrado real (libera el cupo de "1 negocio por cuenta")
 app.delete(
   '/hoteles/:id',
    verificarToken,
@@ -190,13 +198,17 @@ app.delete(
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.hotel.delete({
+      await prisma.hotel.update({
         where: { id_hotel: Number(id) },
+        data: { activo: false },
       });
-      res.status(200).json({ message: 'Hotel eliminado correctamente' });
+      res.status(200).json({ message: 'Hotel desactivado correctamente' });
     } catch (error) {
-      console.error('Error al eliminar hotel:', error);
-      res.status(500).json({ error: 'Error al eliminar el hotel o registro no encontrado' });
+      console.error('Error al desactivar hotel:', error);
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'Hotel no encontrado.' });
+      }
+      res.status(500).json({ error: 'Error al desactivar el hotel' });
     }
   }
 );

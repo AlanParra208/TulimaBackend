@@ -103,12 +103,9 @@ app.post(
 
       const nuevoTour = await prisma.provedor_tour.create({
         data: {
-          nombre, id_municipio, pueblo, tipoTour, telefono, tipoServicio,
+          nombre, id_municipio, tipoTour, telefono, tipoServicio,
+          numero_Calle, nombre_Calle, colonia, codigoPostal,
           id_usuario: req.usuarioId,
-          numero_Calle: numero_Calle ?? null,
-          nombre_Calle: nombre_Calle ?? null,
-          colonia: colonia ?? null,
-          codigoPostal: codigoPostal ?? null,
           imagen,
           latitud: latitud ?? null,
           longitud: longitud ?? null,
@@ -118,6 +115,9 @@ app.post(
       res.status(201).json(nuevoTour);
     } catch (error) {
       console.error('Error al crear tour:', error);
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'El municipio seleccionado no es válido.' });
+      }
       res.status(500).json({ error: 'Error al crear el tour' });
     }
   }
@@ -163,6 +163,12 @@ app.put(
       res.status(200).json(tourActualizado);
     } catch (error) {
       console.error('Error al actualizar tour:', error);
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'El municipio seleccionado no es válido.' });
+      }
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'El tour que intentas actualizar ya no existe.' });
+      }
       res.status(500).json({ error: 'Error al actualizar el tour' });
     }
   }
@@ -177,13 +183,17 @@ app.delete(
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.provedor_tour.delete({
+      await prisma.provedor_tour.update({
         where: { id_provedor: Number(id) },
+        data: { activo: false },
       });
-      res.status(200).json({ message: 'Tour eliminado correctamente' });
+      res.status(200).json({ message: 'Tour desactivado correctamente' });
     } catch (error) {
-      console.error('Error al eliminar tour:', error);
-      res.status(500).json({ error: 'Error al eliminar el tour o registro no encontrado' });
+      console.error('Error al desactivar tour:', error);
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'Tour no encontrado.' });
+      }
+      res.status(500).json({ error: 'Error al desactivar el tour' });
     }
   }
 );
