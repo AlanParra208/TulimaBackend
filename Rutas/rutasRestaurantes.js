@@ -131,6 +131,9 @@ app.post(
       res.status(201).json(nuevoRestaurante);
     } catch (error) {
       console.error('Error al crear restaurante:', error);
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'El municipio seleccionado no es válido.' });
+      }
       res.status(500).json({ error: 'Error al crear el restaurante' });
     }
   }
@@ -191,6 +194,12 @@ app.put(
       res.status(200).json(restauranteActualizado);
     } catch (error) {
       console.error('Error al actualizar restaurante:', error);
+      if (error.code === 'P2003') {
+        return res.status(400).json({ error: 'El municipio seleccionado no es válido.' });
+      }
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'El restaurante que intentas actualizar ya no existe.' });
+      }
       res.status(500).json({ error: 'Error al actualizar el restaurante' });
     }
   }
@@ -205,13 +214,17 @@ app.delete(
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.restaurante.delete({
+      await prisma.restaurante.update({
         where: { id_restaurante: Number(id) },
+        data: { activo: false },
       });
-      res.status(200).json({ message: 'Restaurante eliminado correctamente' });
+      res.status(200).json({ message: 'Restaurante desactivado correctamente' });
     } catch (error) {
-      console.error('Error al eliminar restaurante:', error);
-      res.status(500).json({ error: 'Error al eliminar el restaurante' });
+      console.error('Error al desactivar restaurante:', error);
+      if (error.code === 'P2025') {
+        return res.status(404).json({ error: 'Restaurante no encontrado.' });
+      }
+      res.status(500).json({ error: 'Error al desactivar el restaurante' });
     }
   }
 );

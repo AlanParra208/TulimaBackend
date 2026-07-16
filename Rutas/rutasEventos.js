@@ -9,10 +9,7 @@ app.get('/eventos', async (req, res) => {
   try {
     const eventos = await prisma.evento.findMany({
       where: { activo: true },
-      include: {        destino_turistico: {
-          include: { municipio: true }
-        }
-      }
+      include: { municipio: true }
     });
     res.status(200).json(eventos);
   } catch (error) {
@@ -26,10 +23,7 @@ app.get('/eventos/mios', verificarToken, async (req, res) => {
   try {
     const eventos = await prisma.evento.findMany({
       where: { id_usuario: req.usuarioId },
-      include: {        destino_turistico: {
-          include: { municipio: true }
-        }
-      }
+      include: { municipio: true }
     });
     res.status(200).json(eventos);
   } catch (error) {
@@ -45,10 +39,7 @@ app.get('/eventos/admin/todos', verificarToken, async (req, res) => {
       return res.status(403).json({ error: 'Acceso restringido a administradores.' });
     }
     const eventos = await prisma.evento.findMany({
-      include: {        destino_turistico: {
-          include: { municipio: true }
-        }
-      }
+      include: { municipio: true }
     });
     res.status(200).json(eventos);
   } catch (error) {
@@ -66,10 +57,7 @@ app.get(
     try {
       const evento = await prisma.evento.findFirst({
         where: { id_evento: Number(id), activo: true },
-        include: {          destino_turistico: {
-            include: { municipio: true }
-          }
-        }
+        include: { municipio: true }
       });
       if (!evento) return res.status(404).json({ error: 'Evento no encontrado' });
       res.status(200).json(evento);
@@ -85,7 +73,6 @@ app.post(
   verificarToken,
   [
     body('nombre_Evento').trim().notEmpty().withMessage('nombre_Evento es obligatorio').isLength({ max: 50 }),
-    body('id_destino').isInt().withMessage('id_destino es obligatorio'),
     body('numero_Calle').isInt().withMessage('numero_Calle es obligatorio'),
     body('nombre_Calle').trim().notEmpty().isLength({ max: 50 }),
     body('codigoPostal').isInt().withMessage('codigoPostal es obligatorio'),
@@ -107,7 +94,7 @@ app.post(
       }
 
       const {
-        nombre_Evento, id_destino, numero_Calle, nombre_Calle,
+        nombre_Evento, numero_Calle, nombre_Calle,
         codigoPostal, id_municipio, pueblo, tipoEvento, fechaInicio,
         fechaTermino, imagen, latitud, longitud
       } = req.body;
@@ -115,7 +102,6 @@ app.post(
       const nuevoEvento = await prisma.evento.create({
         data: {
           nombre_Evento,
-          id_destino: Number(id_destino),
           numero_Calle: Number(numero_Calle),
           nombre_Calle,
           codigoPostal: Number(codigoPostal),
@@ -146,7 +132,6 @@ app.put(
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
     body('nombre_Evento').optional().trim().isLength({ max: 50 }),
-    body('id_destino').isInt().withMessage('id_destino es obligatorio'),
     body('numero_Calle').isInt().withMessage('numero_Calle es obligatorio'),
     body('nombre_Calle').trim().notEmpty().isLength({ max: 50 }),
     body('codigoPostal').isInt().withMessage('codigoPostal es obligatorio'),
@@ -165,7 +150,7 @@ app.put(
     const { id } = req.params;
     try {
       const {
-        nombre_Evento, id_destino, numero_Calle, nombre_Calle,
+        nombre_Evento, numero_Calle, nombre_Calle,
         codigoPostal, id_municipio, pueblo, tipoEvento,
         fechaInicio, fechaTermino, activo, imagen,
         latitud, longitud
@@ -173,7 +158,6 @@ app.put(
 
       const data = {};
       if (nombre_Evento !== undefined) data.nombre_Evento = nombre_Evento;
-      if (id_destino !== undefined) data.id_destino = Number(id_destino);
       if (numero_Calle !== undefined) data.numero_Calle = Number(numero_Calle);
       if (nombre_Calle !== undefined) data.nombre_Calle = nombre_Calle;
       if (codigoPostal !== undefined) data.codigoPostal = Number(codigoPostal);
@@ -199,7 +183,7 @@ app.put(
   }
 );
 
-// DELETE — borrado real (libera el cupo de "1 negocio por cuenta")
+
 app.delete(
   '/eventos/:id',
    verificarToken,
@@ -208,19 +192,17 @@ app.delete(
   async (req, res) => {
     const { id } = req.params;
     try {
-      await prisma.evento.delete({
+      await prisma.evento.update({
         where: { id_evento: Number(id) },
+        data: { activo: false },
       });
-      res.status(200).json({ message: 'Evento eliminado correctamente' });
+      res.status(200).json({ message: 'Evento desactivado correctamente' });
     } catch (error) {
-      console.error('Error al eliminar evento:', error);
+      console.error('Error al desactivar evento:', error);
       if (error.code === 'P2025') {
-        return res.status(404).json({ error: 'El evento no existe o ya fue eliminado.' });
+        return res.status(404).json({ error: 'El evento no existe.' });
       }
-      if (error.code === 'P2003') {
-        return res.status(409).json({ error: 'No puedes eliminar este evento porque tiene registros asociados.' });
-      }
-      res.status(500).json({ error: 'Error al eliminar el evento' });
+      res.status(500).json({ error: 'Error al desactivar el evento' });
     }
   }
 );

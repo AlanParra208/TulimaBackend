@@ -24,7 +24,7 @@ app.get('/mapa/servicios', async (req, res) => {
       }),
       prisma.evento.findMany({
         where: { activo: true, latitud: { not: null }, longitud: { not: null } },
-        include: { destino_turistico: { include: { municipio: true } } }
+        include: { municipio: true }
       }),
     ]);
 
@@ -96,7 +96,7 @@ app.get('/mapa/servicios', async (req, res) => {
         lat: e.latitud,
         lng: e.longitud,
         id_municipio: e.id_municipio,
-        municipio: e.destino_turistico?.municipio?.nombre,
+        municipio: e.municipio?.nombre,
         direccion: `${e.numero_Calle} ${e.nombre_Calle}, CP ${e.codigoPostal}`,
         fechaInicio: e.fechaInicio,
         fechaTermino: e.fechaTermino,
