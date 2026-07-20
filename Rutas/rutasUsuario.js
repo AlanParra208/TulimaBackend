@@ -456,7 +456,7 @@ app.post(
   normalizeUserFields,
   [
     body('primerNombre').trim().notEmpty().withMessage('primerNombre es obligatorio').isLength({ max: 50 }),
-    body('nombreUsuario').trim().notEmpty().withMessage('nombreUsuario es obligatorio').isLength({ max: 15 }),
+    body('nombreUsuario').trim().notEmpty().withMessage('nombreUsuario es obligatorio').isLength({ max: 30 }),
     body('contraseña').notEmpty().withMessage('contraseña es obligatoria').isLength({ min: 6, max: 100 }),
     body('telefono').optional().customSanitizer(value => value !== undefined && value !== null ? String(value) : value).isLength({ max: 20 }).withMessage('telefono debe ser texto corto'),
     body('genero').optional().trim().isLength({ max: 20 }).withMessage('genero debe tener máximo 20 caracteres'),
@@ -559,7 +559,7 @@ app.put(
   verificarToken,
   [
     param('id').isInt().withMessage('id debe ser un número entero'),
-    body('nombreUsuario').optional().trim().isLength({ max: 15 }),
+    body('nombreUsuario').optional().trim().isLength({ max: 30 }),
     body('telefono').optional().isString().isLength({ max: 20 }),
     body('genero').optional().trim().isLength({ max: 20 }),
     body('edad').optional().isInt({ min: 0, max: 120 }),

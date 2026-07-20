@@ -182,7 +182,7 @@ model usuario {
   apellidoPaterno   String              @db.VarChar(50)
   apellidoMaterno   String?             @db.VarChar(50)
   contrase_a        String?             @map("contraseña") @db.VarChar(255)
-  nombreUsuario     String              @db.VarChar(15)
+  nombreUsuario     String              @db.VarChar(30)
   telefono          String?             @db.VarChar(255)
   genero            String?             @db.VarChar(50)
   edad              Int?
