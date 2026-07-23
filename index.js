@@ -28,7 +28,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: 'https://tulima.site',
+  origin: ['https://tulima.site', 'https://www.tulima.site'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
