@@ -14,7 +14,7 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:'],
-      connectSrc: ["'self'", 'https://tulima.vercel.app/'],
+      connectSrc: ["'self'", 'https://tulima.site/'],
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
@@ -28,7 +28,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: 'https://tulima.vercel.app',
+  origin: 'https://tulima.site',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
@@ -56,7 +56,7 @@ app.use(require('./Rutas/rutasEventos'));
 app.use(require('./Rutas/rutasMapa'));
 
 app.listen(process.env.PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${process.env.PORT}`);
+
 });
 
 module.exports = app;
