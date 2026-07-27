@@ -14,7 +14,7 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:'],
-      connectSrc: ["'self'", 'https://tulima.site/'],
+      connectSrc: ["'self'", 'https://tulima.site', 'https://www.tulima.site', 'https://api.tulima.site'],
       fontSrc: ["'self'", 'data:'],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
